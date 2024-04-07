@@ -40,13 +40,64 @@ public record Lexer
         switch (Ch)
         {
             case '=':
-                tok = new(new(Token.ASSIGN), Ch);
+                if (PeekChar() == '=')
+                {
+                    var ch = Ch;
+                    ReadChar();
+                    tok = new(new(Token.EQ), string.Concat(Ch, ch));
+                }
+                else
+                {
+                    tok = new(new(Token.ASSIGN), Ch);
+                }
                 break;
             case '+':
                 tok = new(new(Token.PLUS), Ch);
                 break;
             case ';':
                 tok = new(new(Token.SEMICOLON), Ch);
+                break;
+            case '(':
+                tok = new(new(Token.LPAREN), Ch);
+                break;
+            case ')':
+                tok = new(new(Token.RPAREN), Ch);
+                break;
+            case '{':
+                tok = new(new(Token.LBRACE), Ch);
+                break;
+            case '}':
+                tok = new(new(Token.RBRACE), Ch);
+                break;
+            case ',':
+                tok = new(new(Token.COMMA), Ch);
+                break;
+            case '!':
+                if (PeekChar() == '=')
+                {
+                    var ch = Ch;
+                    ReadChar();
+                    tok = new(new(Token.NOT_EQ), string.Concat(ch, Ch));
+                }
+                else
+                {
+                    tok = new(new(Token.BANG), Ch);
+                }
+                break;
+            case '-':
+                tok = new(new(Token.MINUS), Ch);
+                break;
+            case '/':
+                tok = new(new(Token.SLASH), Ch);
+                break;
+            case '*':
+                tok = new(new(Token.ASTERISK), Ch);
+                break;
+            case '<':
+                tok = new(new(Token.LT), Ch);
+                break;
+            case '>':
+                tok = new(new(Token.GT), Ch);
                 break;
             case '\0':
                 tok = new(new(Token.EOF), "");
@@ -111,4 +162,9 @@ public record Lexer
 
     public static bool IsDigit(char ch)
         => '0' <= ch && ch <= '9';
+
+    public char PeekChar()
+        => ReadPosition >= Input.Length
+            ? '\0'
+            : Input[ReadPosition];
 }
