@@ -22,3 +22,23 @@ public record Program : Node
         return "";
     }
 }
+
+public record LetStatement : Statement
+{
+    Token Token { get; set; } = null!;
+    Expression Value { get; set; } = null!;
+    Identifier Identifier { get; set; } = null!;
+
+    public string TokenLiteral()
+    {
+        return Token.Literal;
+    }
+}
+
+public record Identifier(Token Token, string Value) : Expression
+{
+    public string TokenLiteral()
+    {
+        return Token.Literal;
+    }
+}
