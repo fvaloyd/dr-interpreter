@@ -25,9 +25,9 @@ public record Program : Node
 
 public record LetStatement : Statement
 {
-    Token Token { get; set; } = null!;
-    Expression Value { get; set; } = null!;
-    Identifier Identifier { get; set; } = null!;
+    public Token Token { get; set; } = null!;
+    public Expression Value { get; set; } = null!;
+    public Identifier Name { get; set; } = null!;
 
     public string TokenLiteral()
     {
