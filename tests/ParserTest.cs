@@ -14,7 +14,10 @@ public class ParserTest
         Lexer l = Lexer.Create(input);
         Parser p = new(l);
 
+
         Program program = p.ParseProgram();
+
+        CheckParseErrors(p);
 
         Assert.NotNull(program);
         Assert.Equal(3, program.Statements.Count);
@@ -35,5 +38,17 @@ public class ParserTest
         LetStatement ls = (LetStatement)s;
         Assert.Equal(name, ls.Name.Value);
         Assert.Equal(name, ls.Name.TokenLiteral());
+    }
+
+    static void CheckParseErrors(Parser p)
+    {
+        if (p.Errors.Count == 0) return;
+
+        Console.WriteLine($"parser has {p.Errors.Count} errors");
+        foreach (var err in p.Errors)
+        {
+            Console.WriteLine($"parser error: {err}");
+        }
+        Assert.Fail("Errors in parser");
     }
 }
