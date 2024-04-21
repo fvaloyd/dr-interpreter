@@ -51,4 +51,32 @@ public class ParserTest
         }
         Assert.Fail("Errors in parser");
     }
+
+    [Fact]
+    public void ParseReturnStatements()
+    {
+        string input = """
+            return 5;
+            return 10;
+            return 993322;
+            """;
+
+        Lexer l = Lexer.Create(input);
+        Parser p = new(l);
+
+        Program program = p.ParseProgram();
+
+        CheckParseErrors(p);
+
+
+        Assert.NotNull(program);
+        Assert.Equal(3, program.Statements.Count);
+
+        foreach (Statement stmt in program.Statements)
+        {
+            Assert.IsType<ReturnStatement>(stmt);
+            ReturnStatement ts = (ReturnStatement)stmt;
+            Assert.Equal("return", ts.TokenLiteral());
+        }
+    }
 }

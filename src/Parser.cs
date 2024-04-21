@@ -41,8 +41,20 @@ public record Parser
         return CurrToken.Type.Value switch
         {
             Token.LET => ParseLetStatement(),
+            Token.RETURN => ParseReturnStatement(),
             _ => null
         };
+    }
+
+    public ReturnStatement ParseReturnStatement()
+    {
+        ReturnStatement rs = new() { Token = CurrToken };
+        NextToken();
+        while (CurTokenIs(Token.SEMICOLON))
+        {
+            NextToken();
+        }
+        return rs;
     }
 
     public LetStatement ParseLetStatement()

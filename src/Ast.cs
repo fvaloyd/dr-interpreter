@@ -42,3 +42,12 @@ public record Identifier(Token Token, string Value) : Expression
         return Token.Literal;
     }
 }
+
+public record ReturnStatement : Statement
+{
+    public Token Token { get; set; } = null!;
+    public Expression ReturnValue { get; set; } = null!;
+
+    public string TokenLiteral()
+        => Token.Literal;
+}
