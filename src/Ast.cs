@@ -1,8 +1,11 @@
+using System.Text;
+
 namespace Interpreter;
 
 public interface Node
 {
     string TokenLiteral();
+    string String();
 }
 
 public interface Statement : Node { }
@@ -11,7 +14,7 @@ public interface Expression : Node { }
 
 public record Program : Node
 {
-    public List<Statement> Statements { get; private set; } = new();
+    public List<Statement> Statements { get; set; } = new();
 
     public string TokenLiteral()
     {
@@ -21,6 +24,16 @@ public record Program : Node
         }
         return "";
     }
+
+    public string String()
+    {
+        StringBuilder sb = new();
+        foreach (var stmt in Statements)
+        {
+            sb.Append(stmt.String());
+        }
+        return sb.ToString();
+    }
 }
 
 public record LetStatement : Statement
@@ -28,6 +41,21 @@ public record LetStatement : Statement
     public Token Token { get; set; } = null!;
     public Expression Value { get; set; } = null!;
     public Identifier Name { get; set; } = null!;
+
+    public string String()
+    {
+        StringBuilder sb = new();
+        sb.Append(TokenLiteral()).Append(" ");
+        sb.Append(Name.String());
+        sb.Append(" = ");
+
+        if (Value is not null)
+        {
+            sb.Append(Value.String());
+        }
+        sb.Append(";");
+        return sb.ToString();
+    }
 
     public string TokenLiteral()
     {
@@ -37,6 +65,9 @@ public record LetStatement : Statement
 
 public record Identifier(Token Token, string Value) : Expression
 {
+    public string String()
+        => Value;
+
     public string TokenLiteral()
     {
         return Token.Literal;
@@ -48,6 +79,37 @@ public record ReturnStatement : Statement
     public Token Token { get; set; } = null!;
     public Expression ReturnValue { get; set; } = null!;
 
+    public string String()
+    {
+        StringBuilder sb = new();
+        sb.Append(TokenLiteral()).Append(" ");
+        if (ReturnValue is not null)
+        {
+            sb.Append(ReturnValue.String());
+        }
+        sb.Append(";");
+        return sb.ToString();
+    }
+
     public string TokenLiteral()
         => Token.Literal;
 }
+
+public record ExpressionStatement : Statement
+{
+    public Token Token { get; set; } = null!;
+    public Expression Expression { get; set; } = null!;
+
+    public string String()
+    {
+        if (Expression is not null)
+        {
+            return Expression.String();
+        }
+        return string.Empty;
+    }
+
+    public string TokenLiteral()
+        => Token.Literal;
+}
+

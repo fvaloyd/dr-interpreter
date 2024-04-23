@@ -1,4 +1,6 @@
-namespace Interpreter;
+using Interpreter;
+
+namespace InterpreterTests;
 
 public class ParserTest
 {
