@@ -22,7 +22,7 @@ public record Parser
 
     public Program ParseProgram()
     {
-        Program p = new(); // ast root
+        Program p = new();
 
         while (CurrToken.Type.Value != Token.EOF)
         {
@@ -59,7 +59,7 @@ public record Parser
 
     public LetStatement ParseLetStatement()
     {
-        LetStatement ls = new() { Token = CurrToken }; // tt ('let', 'LET') literal 'let'
+        LetStatement ls = new() { Token = CurrToken };
 
         if (!ExpectPeek(Token.IDENT)) return null!;
 
