@@ -9,6 +9,7 @@ public record Parser
         NextToken();
 
         RegisterPrefix(new(Token.IDENT), ParseIdentifier);
+        RegisterPrefix(new(Token.INT), ParseIntegerLiteral);
     }
 
     public Token CurrToken { get; set; } = null!;
@@ -103,6 +104,18 @@ public record Parser
 
     public Expression ParseIdentifier()
         => new Identifier(CurrToken, CurrToken.Literal);
+
+    public Expression ParseIntegerLiteral()
+    {
+        var result = Int64.TryParse(CurrToken.Literal, out var value);
+        if (!result)
+        {
+            var msg = $"coult not parse {CurrToken.Literal} as integer";
+            Errors.Add(msg);
+            return null!;
+        }
+        return new IntegerLiteral(CurrToken, value);
+    }
 
     public bool CurTokenIs(string type)
         => CurrToken.Type.Value == type;

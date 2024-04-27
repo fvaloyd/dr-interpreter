@@ -100,4 +100,22 @@ public class ParserTest
         Assert.Equal("foobar", ident.Value);
         Assert.Equal("foobar", ident.TokenLiteral());
     }
+
+    [Fact]
+    public void TestIntegerExpression()
+    {
+        string input = "5;";
+        Lexer l = Lexer.Create(input);
+        Parser p = new Parser(l);
+        Program pr = p.ParseProgram();
+        CheckParseErrors(p);
+
+        Assert.Single(pr.Statements);
+        ExpressionStatement stmt = (ExpressionStatement)pr.Statements[0];
+        Assert.NotNull(stmt);
+        IntegerLiteral il = (IntegerLiteral)stmt.Expression;
+        Assert.NotNull(il);
+        Assert.Equal(5, il.Value);
+        Assert.Equal("5", il.TokenLiteral());
+    }
 }

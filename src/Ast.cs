@@ -74,6 +74,15 @@ public record Identifier(Token Token, string Value) : Expression
     }
 }
 
+public record IntegerLiteral(Token Token, Int64 Value) : Expression
+{
+    public string String()
+        => Value.ToString();
+
+    public string TokenLiteral()
+        => Token.Literal;
+}
+
 public record ReturnStatement : Statement
 {
     public Token Token { get; set; } = null!;
