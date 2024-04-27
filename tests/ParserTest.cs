@@ -81,4 +81,23 @@ public class ParserTest
             Assert.Equal("return", ts.TokenLiteral());
         }
     }
+
+    [Fact]
+    public void TestIdentifierExpression()
+    {
+        string input = "foobar;";
+        Lexer l = Lexer.Create(input);
+        Parser p = new Parser(l);
+        Program pr = p.ParseProgram();
+        CheckParseErrors(p);
+
+        Assert.Single(pr.Statements);
+
+        ExpressionStatement stmt = (ExpressionStatement)pr.Statements[0];
+        Assert.NotNull(stmt);
+        Identifier ident = (Identifier)stmt.Expression;
+        Assert.NotNull(ident);
+        Assert.Equal("foobar", ident.Value);
+        Assert.Equal("foobar", ident.TokenLiteral());
+    }
 }

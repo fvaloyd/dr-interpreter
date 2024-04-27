@@ -7,12 +7,16 @@ public record Parser
         Lexer = lexer;
         NextToken();
         NextToken();
+
+        RegisterPrefix(new(Token.IDENT), ParseIdentifier);
     }
 
     public Token CurrToken { get; set; } = null!;
     public Token PeekToken { get; set; } = null!;
     public Lexer Lexer { get; set; }
     public List<string> Errors { get; set; } = new();
+    public Dictionary<TokenType, PrefixParseFn> PrefixParseFns = new();
+    public Dictionary<TokenType, InfixParseFn> InfixParseFns = new();
 
     public void NextToken()
     {
@@ -42,7 +46,7 @@ public record Parser
         {
             Token.LET => ParseLetStatement(),
             Token.RETURN => ParseReturnStatement(),
-            _ => null
+            _ => ParseExpressionStatement()
         };
     }
 
@@ -50,7 +54,7 @@ public record Parser
     {
         ReturnStatement rs = new() { Token = CurrToken };
         NextToken();
-        while (CurTokenIs(Token.SEMICOLON))
+        while (!CurTokenIs(Token.SEMICOLON))
         {
             NextToken();
         }
@@ -74,6 +78,31 @@ public record Parser
 
         return ls;
     }
+
+    public ExpressionStatement ParseExpressionStatement()
+    {
+        var stmt = new ExpressionStatement() { Token = CurrToken };
+        stmt.Expression = ParseExpression(Precedence.LOWEST);
+
+        if (PeekTokenIs(Token.SEMICOLON))
+        {
+            NextToken();
+        }
+        return stmt;
+    }
+
+    public Expression ParseExpression(Precedence pre)
+    {
+        bool result = PrefixParseFns.TryGetValue(CurrToken.Type, out var prefixFn);
+        if (!result || prefixFn is null) return null!;
+
+        var leftExp = prefixFn();
+
+        return leftExp;
+    }
+
+    public Expression ParseIdentifier()
+        => new Identifier(CurrToken, CurrToken.Literal);
 
     public bool CurTokenIs(string type)
         => CurrToken.Type.Value == type;
@@ -100,4 +129,29 @@ public record Parser
         string msg = $"expected next token to be {tt}, got {PeekToken.Type.Value} instead";
         Errors.Add(msg);
     }
+
+    public void RegisterPrefix(TokenType tt, PrefixParseFn fn)
+    {
+        var result = PrefixParseFns.TryAdd(tt, fn);
+        if (!result) return;
+    }
+
+    public void RegisterInfix(TokenType tt, InfixParseFn fn)
+    {
+        var result = InfixParseFns.TryAdd(tt, fn);
+        if (!result) return;
+    }
+}
+
+public delegate Expression PrefixParseFn();
+public delegate Expression InfixParseFn(Expression exp);
+public enum Precedence
+{
+    LOWEST,
+    EQUALS,
+    LESSGREATER,
+    SUM,
+    PRODUCT,
+    PREFIX,
+    CALL
 }
