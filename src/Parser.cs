@@ -10,6 +10,8 @@ public record Parser
 
         RegisterPrefix(new(Token.IDENT), ParseIdentifier);
         RegisterPrefix(new(Token.INT), ParseIntegerLiteral);
+        RegisterPrefix(new(Token.MINUS), ParsePrefixExpression);
+        RegisterPrefix(new(Token.BANG), ParsePrefixExpression);
     }
 
     public Token CurrToken { get; set; } = null!;
@@ -95,11 +97,21 @@ public record Parser
     public Expression ParseExpression(Precedence pre)
     {
         bool result = PrefixParseFns.TryGetValue(CurrToken.Type, out var prefixFn);
-        if (!result || prefixFn is null) return null!;
+        if (!result || prefixFn is null)
+        {
+            NoPrefixParseFnError(CurrToken.Type);
+            return null!;
+        }
 
         var leftExp = prefixFn();
 
         return leftExp;
+    }
+
+    private void NoPrefixParseFnError(TokenType tt)
+    {
+        var msg = $"no prefix parse function for {tt.Value} found";
+        Errors.Add(msg);
     }
 
     public Expression ParseIdentifier()
@@ -115,6 +127,17 @@ public record Parser
             return null!;
         }
         return new IntegerLiteral(CurrToken, value);
+    }
+
+    public Expression ParsePrefixExpression()
+    {
+        var exp = new PrefixExpression { Token = CurrToken, Operator = CurrToken.Literal };
+
+        NextToken();
+
+        exp.Right = ParseExpression(Precedence.PREFIX);
+
+        return exp;
     }
 
     public bool CurTokenIs(string type)

@@ -1,9 +1,14 @@
 using Interpreter;
+using Xunit.Abstractions;
 
 namespace InterpreterTests;
 
 public class ParserTest
 {
+    ITestOutputHelper output;
+
+    public ParserTest(ITestOutputHelper output) => this.output = output;
+
     [Fact]
     public void TestLetStatement()
     {
@@ -42,14 +47,14 @@ public class ParserTest
         Assert.Equal(name, ls.Name.TokenLiteral());
     }
 
-    static void CheckParseErrors(Parser p)
+    void CheckParseErrors(Parser p)
     {
         if (p.Errors.Count == 0) return;
 
-        Console.WriteLine($"parser has {p.Errors.Count} errors");
+        output.WriteLine($"parser has {p.Errors.Count} errors");
         foreach (var err in p.Errors)
         {
-            Console.WriteLine($"parser error: {err}");
+            output.WriteLine($"parser error: {err}");
         }
         Assert.Fail("Errors in parser");
     }
@@ -117,5 +122,45 @@ public class ParserTest
         Assert.NotNull(il);
         Assert.Equal(5, il.Value);
         Assert.Equal("5", il.TokenLiteral());
+    }
+
+    [Theory]
+    [InlineData("!5;", "!", 5)]
+    [InlineData("-15;", "-", 15)]
+    public void TestParsingPrefixExpression(string input, string @operator, Int64 integerValue)
+    {
+        Lexer l = Lexer.Create(input);
+        Parser p = new Parser(l);
+        Program pr = p.ParseProgram();
+        CheckParseErrors(p);
+
+        Assert.Single(pr.Statements);
+        Assert.IsType<ExpressionStatement>(pr.Statements[0]);
+        var stmt = (ExpressionStatement)pr.Statements[0];
+        Assert.IsType<PrefixExpression>(stmt.Expression);
+        var exp = (PrefixExpression)stmt.Expression;
+
+        Assert.Equal(@operator, exp.Operator);
+        Assert.True(TestIntegerLiteral(exp.Right, integerValue));
+    }
+
+    bool TestIntegerLiteral(Expression exp, Int64 value)
+    {
+        Assert.IsType<IntegerLiteral>(exp);
+        var il = (IntegerLiteral)exp;
+
+        if (il.Value != value)
+        {
+            output.WriteLine($"il.Value not {value}. got={il.Value}");
+            return false;
+        }
+
+        if (il.TokenLiteral() != value.ToString())
+        {
+            output.WriteLine($"il.TokenLiteral() not {value}. got={il.TokenLiteral()}");
+            return false;
+        }
+
+        return true;
     }
 }

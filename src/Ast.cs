@@ -122,3 +122,22 @@ public record ExpressionStatement : Statement
         => Token.Literal;
 }
 
+public record PrefixExpression : Expression
+{
+    public Token Token { get; set; } = null!;
+    public string Operator { get; set; } = string.Empty;
+    public Expression Right { get; set; } = null!;
+
+    public string String()
+    {
+        var sb = new StringBuilder();
+        sb.Append("(");
+        sb.Append(Operator);
+        sb.Append(Right.String());
+        sb.Append(")");
+        return sb.ToString();
+    }
+
+    public string TokenLiteral()
+        => Token.Literal;
+}
