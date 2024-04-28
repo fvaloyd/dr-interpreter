@@ -12,6 +12,15 @@ public record Parser
         RegisterPrefix(new(Token.INT), ParseIntegerLiteral);
         RegisterPrefix(new(Token.MINUS), ParsePrefixExpression);
         RegisterPrefix(new(Token.BANG), ParsePrefixExpression);
+
+        RegisterInfix(new(Token.PLUS), ParseInfixExpression);
+        RegisterInfix(new(Token.MINUS), ParseInfixExpression);
+        RegisterInfix(new(Token.SLASH), ParseInfixExpression);
+        RegisterInfix(new(Token.ASTERISK), ParseInfixExpression);
+        RegisterInfix(new(Token.EQ), ParseInfixExpression);
+        RegisterInfix(new(Token.NOT_EQ), ParseInfixExpression);
+        RegisterInfix(new(Token.LT), ParseInfixExpression);
+        RegisterInfix(new(Token.GT), ParseInfixExpression);
     }
 
     public Token CurrToken { get; set; } = null!;
@@ -105,6 +114,18 @@ public record Parser
 
         var leftExp = prefixFn();
 
+        while (!PeekTokenIs(Token.SEMICOLON) && pre < PeekPrecedence())
+        {
+            bool resultInfix = InfixParseFns.TryGetValue(PeekToken.Type, out var infixFn);
+            if (!resultInfix || infixFn is null)
+            {
+                return leftExp;
+            }
+            NextToken();
+
+            leftExp = infixFn(leftExp);
+        }
+
         return leftExp;
     }
 
@@ -138,6 +159,44 @@ public record Parser
         exp.Right = ParseExpression(Precedence.PREFIX);
 
         return exp;
+    }
+
+    public Expression ParseInfixExpression(Expression left)
+    {
+        var exp = new InfixExpression { Token = CurrToken, Operator = CurrToken.Literal, Left = left };
+
+        var precedence = CurrPrecedence();
+        NextToken();
+        exp.Right = ParseExpression(precedence);
+        return exp;
+    }
+
+    public static Dictionary<TokenType, Precedence> Precedences => new()
+    {
+        {new(Token.EQ), Precedence.EQUALS},
+        {new(Token.NOT_EQ), Precedence.EQUALS},
+        {new(Token.LT), Precedence.LESSGREATER},
+        {new(Token.GT), Precedence.LESSGREATER},
+        {new(Token.PLUS), Precedence.SUM},
+        {new(Token.MINUS), Precedence.SUM},
+        {new(Token.SLASH), Precedence.PRODUCT},
+        {new(Token.ASTERISK), Precedence.PRODUCT},
+    };
+
+    public Precedence PeekPrecedence()
+    {
+        var result = Precedences.TryGetValue(PeekToken.Type, out var precedence);
+        return result
+            ? precedence
+            : Precedence.LOWEST;
+    }
+
+    public Precedence CurrPrecedence()
+    {
+        var result = Precedences.TryGetValue(CurrToken.Type, out var precedence);
+        return result
+            ? precedence
+            : Precedence.LOWEST;
     }
 
     public bool CurTokenIs(string type)

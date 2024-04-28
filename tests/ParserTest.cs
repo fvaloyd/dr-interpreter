@@ -163,4 +163,28 @@ public class ParserTest
 
         return true;
     }
+
+    [Theory]
+    [InlineData("5 + 5", 5, "+", 5)]
+    [InlineData("5 - 5", 5, "-", 5)]
+    [InlineData("5 * 5", 5, "*", 5)]
+    [InlineData("5 / 5", 5, "/", 5)]
+    [InlineData("5 > 5", 5, ">", 5)]
+    [InlineData("5 < 5", 5, "<", 5)]
+    [InlineData("5 == 5", 5, "==", 5)]
+    [InlineData("5 != 5", 5, "!=", 5)]
+    public void TestParsingInfixExpression(string input, Int64 leftValue, string @operator, Int64 rightValue)
+    {
+        Lexer l = Lexer.Create(input);
+        Parser p = new Parser(l);
+        Program pr = p.ParseProgram();
+        CheckParseErrors(p);
+
+        Assert.Single(pr.Statements);
+        var stmt = Assert.IsType<ExpressionStatement>(pr.Statements[0]);
+        var exp = Assert.IsType<InfixExpression>(stmt.Expression);
+        Assert.True(TestIntegerLiteral(exp.Left, leftValue));
+        Assert.Equal(@operator, exp.Operator);
+        Assert.True(TestIntegerLiteral(exp.Right, rightValue));
+    }
 }

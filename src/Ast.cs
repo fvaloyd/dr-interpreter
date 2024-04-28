@@ -141,3 +141,26 @@ public record PrefixExpression : Expression
     public string TokenLiteral()
         => Token.Literal;
 }
+
+public record InfixExpression : Expression
+{
+    public Token Token { get; set; } = null!;
+    public string Operator { get; set; } = string.Empty;
+    public Expression Right { get; set; } = null!;
+    public Expression Left { get; set; } = null!;
+
+    public string String()
+    {
+        var sb = new StringBuilder();
+        sb.Append("(");
+        sb.Append(Left.String());
+        sb.Append(Operator);
+        sb.Append(Right.String());
+        sb.Append(")");
+        return sb.ToString();
+    }
+
+    public string TokenLiteral()
+        => Token.Literal;
+}
+
