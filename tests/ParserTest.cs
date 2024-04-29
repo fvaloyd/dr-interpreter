@@ -187,4 +187,27 @@ public class ParserTest
         Assert.Equal(@operator, exp.Operator);
         Assert.True(TestIntegerLiteral(exp.Right, rightValue));
     }
+
+    [Theory]
+    [InlineData("-a * b", "((-a) * b)")]
+    [InlineData("!-a", "(!(-a))")]
+    [InlineData("a + b + c", "((a + b) + c)")]
+    [InlineData("a + b - c", "((a + b) - c)")]
+    [InlineData("a * b * c", "((a * b) * c)")]
+    [InlineData("a * b / c", "((a * b) / c)")]
+    [InlineData("a + b / c", "(a + (b / c))")]
+    [InlineData("a + b * c + d / e - f", "(((a + (b * c)) + (d / e)) - f)")]
+    [InlineData("3 + 4; -5 * 5", "(3 + 4)((-5) * 5)")]
+    [InlineData("5 > 4 == 3 < 4", "((5 > 4) == (3 < 4))")]
+    [InlineData("5 < 4 != 3 > 4", "((5 < 4) != (3 > 4))")]
+    [InlineData("3 + 4 * 5 == 3 * 1 + 4 * 5", "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))")]
+    public void TestOperatorPrecedenceParsing(string input, string expected)
+    {
+        Lexer l = Lexer.Create(input);
+        Parser p = new Parser(l);
+        Program pr = p.ParseProgram();
+        CheckParseErrors(p);
+
+        Assert.Equal(expected, pr.String());
+    }
 }

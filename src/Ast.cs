@@ -154,7 +154,7 @@ public record InfixExpression : Expression
         var sb = new StringBuilder();
         sb.Append("(");
         sb.Append(Left.String());
-        sb.Append(Operator);
+        sb.Append(" " + Operator + " ");
         sb.Append(Right.String());
         sb.Append(")");
         return sb.ToString();
