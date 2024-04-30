@@ -20,10 +20,7 @@ public class ParserTest
 
         Lexer l = Lexer.Create(input);
         Parser p = new(l);
-
-
         Program program = p.ParseProgram();
-
         CheckParseErrors(p);
 
         Assert.NotNull(program);
@@ -41,8 +38,7 @@ public class ParserTest
     static void testLetStatement(Statement s, string name)
     {
         Assert.Equal("let", s.TokenLiteral());
-        Assert.IsType<LetStatement>(s);
-        LetStatement ls = (LetStatement)s;
+        var ls = Assert.IsType<LetStatement>(s);
         Assert.Equal(name, ls.Name.Value);
         Assert.Equal(name, ls.Name.TokenLiteral());
     }
@@ -75,14 +71,12 @@ public class ParserTest
 
         CheckParseErrors(p);
 
-
         Assert.NotNull(program);
         Assert.Equal(3, program.Statements.Count);
 
         foreach (Statement stmt in program.Statements)
         {
-            Assert.IsType<ReturnStatement>(stmt);
-            ReturnStatement ts = (ReturnStatement)stmt;
+            var ts = Assert.IsType<ReturnStatement>(stmt);
             Assert.Equal("return", ts.TokenLiteral());
         }
     }
@@ -98,10 +92,8 @@ public class ParserTest
 
         Assert.Single(pr.Statements);
 
-        ExpressionStatement stmt = (ExpressionStatement)pr.Statements[0];
-        Assert.NotNull(stmt);
-        Identifier ident = (Identifier)stmt.Expression;
-        Assert.NotNull(ident);
+        var stmt = Assert.IsType<ExpressionStatement>(pr.Statements[0]);
+        var ident = Assert.IsType<Identifier>(stmt.Expression);
         Assert.Equal("foobar", ident.Value);
         Assert.Equal("foobar", ident.TokenLiteral());
     }
@@ -116,10 +108,8 @@ public class ParserTest
         CheckParseErrors(p);
 
         Assert.Single(pr.Statements);
-        ExpressionStatement stmt = (ExpressionStatement)pr.Statements[0];
-        Assert.NotNull(stmt);
-        IntegerLiteral il = (IntegerLiteral)stmt.Expression;
-        Assert.NotNull(il);
+        var stmt = Assert.IsType<ExpressionStatement>(pr.Statements[0]);
+        var il = Assert.IsType<IntegerLiteral>(stmt.Expression);
         Assert.Equal(5, il.Value);
         Assert.Equal("5", il.TokenLiteral());
     }
@@ -135,10 +125,8 @@ public class ParserTest
         CheckParseErrors(p);
 
         Assert.Single(pr.Statements);
-        Assert.IsType<ExpressionStatement>(pr.Statements[0]);
-        var stmt = (ExpressionStatement)pr.Statements[0];
-        Assert.IsType<PrefixExpression>(stmt.Expression);
-        var exp = (PrefixExpression)stmt.Expression;
+        var stmt = Assert.IsType<ExpressionStatement>(pr.Statements[0]);
+        var exp = Assert.IsType<PrefixExpression>(stmt.Expression);
 
         Assert.Equal(@operator, exp.Operator);
         Assert.True(TestIntegerLiteral(exp.Right, integerValue));
