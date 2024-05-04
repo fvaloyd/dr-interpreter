@@ -10,6 +10,8 @@ public record Parser
 
         RegisterPrefix(new(Token.IDENT), ParseIdentifier);
         RegisterPrefix(new(Token.INT), ParseIntegerLiteral);
+        RegisterPrefix(new(Token.TRUE), ParseBoolean);
+        RegisterPrefix(new(Token.FALSE), ParseBoolean);
         RegisterPrefix(new(Token.MINUS), ParsePrefixExpression);
         RegisterPrefix(new(Token.BANG), ParsePrefixExpression);
 
@@ -170,6 +172,9 @@ public record Parser
         exp.Right = ParseExpression(precedence);
         return exp;
     }
+
+    public Expression ParseBoolean()
+        => new Boolean(CurrToken, CurTokenIs(Token.TRUE));
 
     public static Dictionary<TokenType, Precedence> Precedences => new()
     {

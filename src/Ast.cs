@@ -63,6 +63,15 @@ public record LetStatement : Statement
     }
 }
 
+public record Boolean(Token Token, bool Value) : Expression
+{
+    public string String()
+        => Token.Literal;
+
+    public string TokenLiteral()
+        => Token.Literal;
+}
+
 public record Identifier(Token Token, string Value) : Expression
 {
     public string String()

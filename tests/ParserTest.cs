@@ -1,5 +1,6 @@
 using Interpreter;
 using Xunit.Abstractions;
+using Boolean = Interpreter.Boolean;
 
 namespace InterpreterTests;
 
@@ -43,6 +44,13 @@ public class ParserTest
         Assert.Equal(value.ToString(), il.TokenLiteral());
     }
 
+    void testBooleanLiteral(Expression exp, bool value)
+    {
+        Boolean bo = Assert.IsType<Boolean>(exp);
+        Assert.Equal(value, bo.Value);
+        Assert.Equal(value.ToString().ToLower(), bo.TokenLiteral());
+    }
+
     void testLiteralExpression(Expression exp, Object obj)
     {
         switch (obj)
@@ -55,6 +63,9 @@ public class ParserTest
                 return;
             case string:
                 testIdentifier(exp, (string)obj);
+                return;
+            case bool:
+                testBooleanLiteral(exp, (bool)obj);
                 return;
             default:
                 Assert.Fail($"type of exp not handle. got={exp}");
@@ -159,7 +170,9 @@ public class ParserTest
     [Theory]
     [InlineData("!5;", "!", 5)]
     [InlineData("-15;", "-", 15)]
-    public void TestParsingPrefixExpression(string input, string @operator, Int64 integerValue)
+    [InlineData("!true", "!", true)]
+    [InlineData("!false;", "!", false)]
+    public void TestParsingPrefixExpression(string input, string @operator, object integerValue)
     {
         Lexer l = Lexer.Create(input);
         Parser p = new Parser(l);
@@ -171,7 +184,7 @@ public class ParserTest
         var exp = Assert.IsType<PrefixExpression>(stmt.Expression);
 
         Assert.Equal(@operator, exp.Operator);
-        testIntegerLiteral(exp.Right, integerValue);
+        testLiteralExpression(exp.Right, integerValue);
     }
 
 
@@ -184,7 +197,10 @@ public class ParserTest
     [InlineData("5 < 5", 5, "<", 5)]
     [InlineData("5 == 5", 5, "==", 5)]
     [InlineData("5 != 5", 5, "!=", 5)]
-    public void TestParsingInfixExpression(string input, Int64 leftValue, string @operator, Int64 rightValue)
+    [InlineData("true == true", true, "==", true)]
+    [InlineData("true != false", true, "!=", false)]
+    [InlineData("false == false", false, "==", false)]
+    public void TestParsingInfixExpression(string input, object leftValue, string @operator, object rightValue)
     {
         Lexer l = Lexer.Create(input);
         Parser p = new Parser(l);
@@ -194,9 +210,7 @@ public class ParserTest
         Assert.Single(pr.Statements);
         var stmt = Assert.IsType<ExpressionStatement>(pr.Statements[0]);
         var exp = Assert.IsType<InfixExpression>(stmt.Expression);
-        testIntegerLiteral(exp.Left, leftValue);
-        Assert.Equal(@operator, exp.Operator);
-        testIntegerLiteral(exp.Right, rightValue);
+        testInfixExpression(exp, leftValue, @operator, rightValue);
     }
 
     [Theory]
@@ -212,6 +226,10 @@ public class ParserTest
     [InlineData("5 > 4 == 3 < 4", "((5 > 4) == (3 < 4))")]
     [InlineData("5 < 4 != 3 > 4", "((5 < 4) != (3 > 4))")]
     [InlineData("3 + 4 * 5 == 3 * 1 + 4 * 5", "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))")]
+    [InlineData("true", "true")]
+    [InlineData("false", "false")]
+    [InlineData("3 > 5 == false", "((3 > 5) == false)")]
+    [InlineData("3 > 5 == true", "((3 > 5) == true)")]
     public void TestOperatorPrecedenceParsing(string input, string expected)
     {
         Lexer l = Lexer.Create(input);
@@ -222,4 +240,20 @@ public class ParserTest
         Assert.Equal(expected, pr.String());
     }
 
+    [Theory]
+    [InlineData("true", true)]
+    [InlineData("false", false)]
+    public void TestBooleanExpression(string input, bool expectedBoolean)
+    {
+
+        Lexer l = Lexer.Create(input);
+        Parser p = new Parser(l);
+        Program pr = p.ParseProgram();
+        checkParseErrors(p);
+
+        Assert.Single(pr.Statements);
+        var stmt = Assert.IsType<ExpressionStatement>(pr.Statements[0]);
+        var boolean = Assert.IsType<Boolean>(stmt.Expression);
+        Assert.Equal(expectedBoolean, boolean.Value);
+    }
 }
