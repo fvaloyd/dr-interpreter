@@ -9,6 +9,67 @@ public class ParserTest
 
     public ParserTest(ITestOutputHelper output) => this.output = output;
 
+    void testLetStatement(Statement s, string name)
+    {
+        Assert.Equal("let", s.TokenLiteral());
+        var ls = Assert.IsType<LetStatement>(s);
+        Assert.Equal(name, ls.Name.Value);
+        Assert.Equal(name, ls.Name.TokenLiteral());
+    }
+
+    void checkParseErrors(Parser p)
+    {
+        if (p.Errors.Count == 0) return;
+
+        output.WriteLine($"parser has {p.Errors.Count} errors");
+        foreach (var err in p.Errors)
+        {
+            output.WriteLine($"parser error: {err}");
+        }
+        Assert.Fail("Errors in parser");
+    }
+
+    void testIdentifier(Expression exp, string value)
+    {
+        Identifier ident = Assert.IsType<Identifier>(exp);
+        Assert.Equal(value, ident.Value);
+        Assert.Equal(value, ident.TokenLiteral());
+    }
+
+    void testIntegerLiteral(Expression exp, Int64 value)
+    {
+        IntegerLiteral il = Assert.IsType<IntegerLiteral>(exp);
+        Assert.Equal(value, il.Value);
+        Assert.Equal(value.ToString(), il.TokenLiteral());
+    }
+
+    void testLiteralExpression(Expression exp, Object obj)
+    {
+        switch (obj)
+        {
+            case int:
+                testIntegerLiteral(exp, (int)obj);
+                return;
+            case Int64:
+                testIntegerLiteral(exp, (int)obj);
+                return;
+            case string:
+                testIdentifier(exp, (string)obj);
+                return;
+            default:
+                Assert.Fail($"type of exp not handle. got={exp}");
+                return;
+        }
+    }
+
+    void testInfixExpression(Expression exp, Object left, string @operator, Object right)
+    {
+        var opExp = Assert.IsType<InfixExpression>(exp);
+        testLiteralExpression(opExp.Left, left);
+        Assert.Equal(@operator, opExp.Operator);
+        testLiteralExpression(opExp.Right, right);
+    }
+
     [Fact]
     public void TestLetStatement()
     {
@@ -21,7 +82,7 @@ public class ParserTest
         Lexer l = Lexer.Create(input);
         Parser p = new(l);
         Program program = p.ParseProgram();
-        CheckParseErrors(p);
+        checkParseErrors(p);
 
         Assert.NotNull(program);
         Assert.Equal(3, program.Statements.Count);
@@ -35,28 +96,9 @@ public class ParserTest
         }
     }
 
-    static void testLetStatement(Statement s, string name)
-    {
-        Assert.Equal("let", s.TokenLiteral());
-        var ls = Assert.IsType<LetStatement>(s);
-        Assert.Equal(name, ls.Name.Value);
-        Assert.Equal(name, ls.Name.TokenLiteral());
-    }
-
-    void CheckParseErrors(Parser p)
-    {
-        if (p.Errors.Count == 0) return;
-
-        output.WriteLine($"parser has {p.Errors.Count} errors");
-        foreach (var err in p.Errors)
-        {
-            output.WriteLine($"parser error: {err}");
-        }
-        Assert.Fail("Errors in parser");
-    }
 
     [Fact]
-    public void ParseReturnStatements()
+    public void TestReturnStatements()
     {
         string input = """
             return 5;
@@ -69,7 +111,7 @@ public class ParserTest
 
         Program program = p.ParseProgram();
 
-        CheckParseErrors(p);
+        checkParseErrors(p);
 
         Assert.NotNull(program);
         Assert.Equal(3, program.Statements.Count);
@@ -88,7 +130,7 @@ public class ParserTest
         Lexer l = Lexer.Create(input);
         Parser p = new Parser(l);
         Program pr = p.ParseProgram();
-        CheckParseErrors(p);
+        checkParseErrors(p);
 
         Assert.Single(pr.Statements);
 
@@ -105,7 +147,7 @@ public class ParserTest
         Lexer l = Lexer.Create(input);
         Parser p = new Parser(l);
         Program pr = p.ParseProgram();
-        CheckParseErrors(p);
+        checkParseErrors(p);
 
         Assert.Single(pr.Statements);
         var stmt = Assert.IsType<ExpressionStatement>(pr.Statements[0]);
@@ -122,35 +164,16 @@ public class ParserTest
         Lexer l = Lexer.Create(input);
         Parser p = new Parser(l);
         Program pr = p.ParseProgram();
-        CheckParseErrors(p);
+        checkParseErrors(p);
 
         Assert.Single(pr.Statements);
         var stmt = Assert.IsType<ExpressionStatement>(pr.Statements[0]);
         var exp = Assert.IsType<PrefixExpression>(stmt.Expression);
 
         Assert.Equal(@operator, exp.Operator);
-        Assert.True(TestIntegerLiteral(exp.Right, integerValue));
+        testIntegerLiteral(exp.Right, integerValue);
     }
 
-    bool TestIntegerLiteral(Expression exp, Int64 value)
-    {
-        Assert.IsType<IntegerLiteral>(exp);
-        var il = (IntegerLiteral)exp;
-
-        if (il.Value != value)
-        {
-            output.WriteLine($"il.Value not {value}. got={il.Value}");
-            return false;
-        }
-
-        if (il.TokenLiteral() != value.ToString())
-        {
-            output.WriteLine($"il.TokenLiteral() not {value}. got={il.TokenLiteral()}");
-            return false;
-        }
-
-        return true;
-    }
 
     [Theory]
     [InlineData("5 + 5", 5, "+", 5)]
@@ -166,14 +189,14 @@ public class ParserTest
         Lexer l = Lexer.Create(input);
         Parser p = new Parser(l);
         Program pr = p.ParseProgram();
-        CheckParseErrors(p);
+        checkParseErrors(p);
 
         Assert.Single(pr.Statements);
         var stmt = Assert.IsType<ExpressionStatement>(pr.Statements[0]);
         var exp = Assert.IsType<InfixExpression>(stmt.Expression);
-        Assert.True(TestIntegerLiteral(exp.Left, leftValue));
+        testIntegerLiteral(exp.Left, leftValue);
         Assert.Equal(@operator, exp.Operator);
-        Assert.True(TestIntegerLiteral(exp.Right, rightValue));
+        testIntegerLiteral(exp.Right, rightValue);
     }
 
     [Theory]
@@ -194,8 +217,9 @@ public class ParserTest
         Lexer l = Lexer.Create(input);
         Parser p = new Parser(l);
         Program pr = p.ParseProgram();
-        CheckParseErrors(p);
+        checkParseErrors(p);
 
         Assert.Equal(expected, pr.String());
     }
+
 }
