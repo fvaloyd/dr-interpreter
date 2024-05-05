@@ -304,4 +304,47 @@ public class ParserTest
         var alternative = Assert.IsType<ExpressionStatement>(exp.Alternative.Statements[0]);
         testIdentifier(alternative.Expression, "y");
     }
+
+    [Fact]
+    public void TestFunctionLiteralParsing()
+    {
+        string input = "fn(x, y) { x + y; }";
+        Lexer l = Lexer.Create(input);
+        Parser p = new Parser(l);
+        Program pr = p.ParseProgram();
+        checkParseErrors(p);
+
+        Assert.Single(pr.Statements);
+        var stmt = Assert.IsType<ExpressionStatement>(pr.Statements[0]);
+        var function = Assert.IsType<FunctionLiteral>(stmt.Expression);
+        Assert.Equal(2, function.Parameters.Count);
+
+        testLiteralExpression(function.Parameters[0], "x");
+        testLiteralExpression(function.Parameters[1], "y");
+
+        Assert.Single(function.Body.Statements);
+        var bodyStmt = Assert.IsType<ExpressionStatement>(function.Body.Statements[0]);
+        testInfixExpression(bodyStmt.Expression, "x", "+", "y");
+    }
+
+    [Theory]
+    [InlineData("fn() {};", new string[0])]
+    [InlineData("fn(x) {};", new string[] { "x" })]
+    [InlineData("fn(x, y, z) {};", new string[] { "x", "y", "z" })]
+    public void TestFunctionParametersParsing(string input, string[] expectedParams)
+    {
+        Lexer l = Lexer.Create(input);
+        Parser p = new Parser(l);
+        Program pr = p.ParseProgram();
+        checkParseErrors(p);
+
+        var stmt = Assert.IsType<ExpressionStatement>(pr.Statements[0]);
+        var function = Assert.IsType<FunctionLiteral>(stmt.Expression);
+
+        Assert.Equal(expectedParams.Count(), function.Parameters.Count);
+        for (int i = 0; i < expectedParams.Length; i++)
+        {
+            testLiteralExpression(function.Parameters[i], expectedParams[i]);
+        }
+    }
 }

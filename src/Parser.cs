@@ -16,6 +16,7 @@ public record Parser
         RegisterPrefix(new(Token.BANG), ParsePrefixExpression);
         RegisterPrefix(new(Token.LPAREN), ParseGroupedExpression);
         RegisterPrefix(new(Token.IF), ParseIfExpression);
+        RegisterPrefix(new(Token.FUNCTION), ParseFunctionLiteral);
 
         RegisterInfix(new(Token.PLUS), ParseInfixExpression);
         RegisterInfix(new(Token.MINUS), ParseInfixExpression);
@@ -226,6 +227,49 @@ public record Parser
         }
 
         return block;
+    }
+
+    public Expression ParseFunctionLiteral()
+    {
+        var fnl = new FunctionLiteral { Token = CurrToken };
+
+        if (!ExpectPeek(Token.LPAREN)) return null!;
+
+        fnl.Parameters = ParseFunctionParameters();
+
+        if (!ExpectPeek(Token.LBRACE)) return null!;
+
+        fnl.Body = ParseBlockStatement();
+
+        return fnl;
+    }
+
+    public List<Identifier> ParseFunctionParameters()
+    {
+        List<Identifier> identifiers = [];
+        if (PeekTokenIs(Token.RPAREN))
+        {
+            NextToken();
+            return identifiers;
+        }
+
+        NextToken();
+
+        var ident = new Identifier(CurrToken, CurrToken.Literal);
+        identifiers.Add(ident);
+
+        while (PeekTokenIs(Token.COMMA))
+        {
+            NextToken();
+            NextToken();
+
+            ident = new Identifier(CurrToken, CurrToken.Literal);
+            identifiers.Add(ident);
+        }
+
+        if (!ExpectPeek(Token.RPAREN)) return null!;
+
+        return identifiers;
     }
 
     public static Dictionary<TokenType, Precedence> Precedences => new()

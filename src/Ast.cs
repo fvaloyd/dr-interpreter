@@ -217,3 +217,31 @@ public record BlockStatement : Statement
     public string TokenLiteral()
         => Token.Literal;
 }
+
+public record FunctionLiteral : Expression
+{
+    public Token Token { get; set; } = null!;
+    public List<Identifier> Parameters { get; set; } = [];
+    public BlockStatement Body { get; set; } = null!;
+
+    public string String()
+    {
+        var sb = new StringBuilder();
+        var @params = new List<string>();
+        foreach (var param in Parameters)
+        {
+            @params.Add(param.String());
+        }
+        sb.Append(TokenLiteral());
+        sb.Append("(");
+        sb.Append(string.Join(", ", @params));
+        sb.Append(") ");
+        sb.Append(Body.String());
+
+        return sb.ToString();
+    }
+
+    public string TokenLiteral()
+        => Token.Literal;
+}
+
