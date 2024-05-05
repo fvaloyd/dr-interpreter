@@ -14,6 +14,7 @@ public record Parser
         RegisterPrefix(new(Token.FALSE), ParseBoolean);
         RegisterPrefix(new(Token.MINUS), ParsePrefixExpression);
         RegisterPrefix(new(Token.BANG), ParsePrefixExpression);
+        RegisterPrefix(new(Token.LPAREN), ParseGroupedExpression);
 
         RegisterInfix(new(Token.PLUS), ParseInfixExpression);
         RegisterInfix(new(Token.MINUS), ParseInfixExpression);
@@ -175,6 +176,14 @@ public record Parser
 
     public Expression ParseBoolean()
         => new Boolean(CurrToken, CurTokenIs(Token.TRUE));
+
+    public Expression ParseGroupedExpression()
+    {
+        NextToken();
+        var exp = ParseExpression(Precedence.LOWEST);
+        if (!ExpectPeek(Token.RPAREN)) return null!;
+        return exp;
+    }
 
     public static Dictionary<TokenType, Precedence> Precedences => new()
     {
