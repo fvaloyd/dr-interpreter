@@ -72,7 +72,8 @@ public record Parser
     {
         ReturnStatement rs = new() { Token = CurrToken };
         NextToken();
-        while (!CurTokenIs(Token.SEMICOLON))
+        rs.ReturnValue = ParseExpression(Precedence.LOWEST);
+        if (PeekTokenIs(Token.SEMICOLON))
         {
             NextToken();
         }
@@ -89,7 +90,9 @@ public record Parser
 
         if (!ExpectPeek(Token.ASSIGN)) return null!;
 
-        while (!CurTokenIs(Token.SEMICOLON))
+        NextToken();
+        ls.Value = ParseExpression(Precedence.LOWEST);
+        if (PeekTokenIs(Token.SEMICOLON))
         {
             NextToken();
         }

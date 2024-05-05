@@ -81,57 +81,39 @@ public class ParserTest
         testLiteralExpression(opExp.Right, right);
     }
 
-    [Fact]
-    public void TestLetStatement()
+    [Theory]
+    [InlineData("let x = 5;", "x", 5)]
+    [InlineData("let y = true;", "y", true)]
+    [InlineData("let foobar = y", "foobar", "y")]
+    public void TestLetStatement(string input, string expectedIdent, Object expectedValue)
     {
-        string input = """
-            let x = 5;
-            let y = 10;
-            let foobar = 838383;
-            """;
-
         Lexer l = Lexer.Create(input);
         Parser p = new(l);
-        Program program = p.ParseProgram();
+        Program pr = p.ParseProgram();
         checkParseErrors(p);
 
-        Assert.NotNull(program);
-        Assert.Equal(3, program.Statements.Count);
-
-        string[] expectIdents = new string[] { "x", "y", "foobar" };
-
-        for (int i = 0; i < expectIdents.Length; i++)
-        {
-            var stmt = program.Statements[i];
-            testLetStatement(stmt, expectIdents[i]);
-        }
+        Assert.Single(pr.Statements);
+        var stmt = Assert.IsType<LetStatement>(pr.Statements[0]);
+        testLetStatement(stmt, expectedIdent);
+        var val = stmt.Value;
+        testLiteralExpression(val, expectedValue);
     }
 
-
-    [Fact]
-    public void TestReturnStatements()
+    [Theory]
+    [InlineData("return 5", 5)]
+    [InlineData("return true", true)]
+    [InlineData("return foobar", "foobar")]
+    public void TestReturnStatements(string input, Object expectedValue)
     {
-        string input = """
-            return 5;
-            return 10;
-            return 993322;
-            """;
-
         Lexer l = Lexer.Create(input);
         Parser p = new(l);
-
-        Program program = p.ParseProgram();
-
+        Program pr = p.ParseProgram();
         checkParseErrors(p);
 
-        Assert.NotNull(program);
-        Assert.Equal(3, program.Statements.Count);
-
-        foreach (Statement stmt in program.Statements)
-        {
-            var ts = Assert.IsType<ReturnStatement>(stmt);
-            Assert.Equal("return", ts.TokenLiteral());
-        }
+        Assert.Single(pr.Statements);
+        var stmt = Assert.IsType<ReturnStatement>(pr.Statements[0]);
+        Assert.Equal("return", stmt.TokenLiteral());
+        testLiteralExpression(stmt.ReturnValue, expectedValue);
     }
 
     [Fact]
