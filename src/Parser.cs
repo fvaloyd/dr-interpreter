@@ -199,6 +199,12 @@ public record Parser
         if (!ExpectPeek(Token.LBRACE)) return null!;
 
         exp.Consequence = ParseBlockStatement();
+        if (PeekTokenIs(Token.ELSE))
+        {
+            NextToken();
+            if (!ExpectPeek(Token.LBRACE)) return null!;
+            exp.Alternative = ParseBlockStatement();
+        }
 
         return exp;
     }
