@@ -235,6 +235,9 @@ public class ParserTest
     [InlineData("2 / (5 + 5)", "(2 / (5 + 5))")]
     [InlineData("-(5 + 5)", "(-(5 + 5))")]
     [InlineData("!(true == true)", "(!(true == true))")]
+    [InlineData("a + add(b * c) + d", "((a + add((b * c))) + d)")]
+    [InlineData("add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))", "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))")]
+    [InlineData("add(a + b + c * d / f + g)", "add((((a + b) + ((c * d) / f)) + g))")]
     public void TestOperatorPrecedenceParsing(string input, string expected)
     {
         Lexer l = Lexer.Create(input);
@@ -345,6 +348,49 @@ public class ParserTest
         for (int i = 0; i < expectedParams.Length; i++)
         {
             testLiteralExpression(function.Parameters[i], expectedParams[i]);
+        }
+    }
+
+    [Fact]
+    public void TestCallExpressionParsing()
+    {
+        var input = "add(1, 2 * 3, 4 + 5);";
+        Lexer l = Lexer.Create(input);
+        Parser p = new Parser(l);
+        Program pr = p.ParseProgram();
+        checkParseErrors(p);
+
+        Assert.Single(pr.Statements);
+        var stmt = Assert.IsType<ExpressionStatement>(pr.Statements[0]);
+        var exp = Assert.IsType<CallExpression>(stmt.Expression);
+
+        testIdentifier(exp.Function, "add");
+        Assert.Equal(3, exp.Arguments.Count);
+
+        testLiteralExpression(exp.Arguments[0], 1);
+        testInfixExpression(exp.Arguments[1], 2, "*", 3);
+        testInfixExpression(exp.Arguments[2], 4, "+", 5);
+    }
+
+    [Theory]
+    [InlineData("add()", "add", new string[0])]
+    [InlineData("add(1)", "add", new string[] { "1" })]
+    [InlineData("add(1, 2 * 3, 4 + 5)", "add", new string[] { "1", "(2 * 3)", "(4 + 5)" })]
+    public void TestCallExpresionParameterParsing(string input, string expectedIdent, string[] expectedArgs)
+    {
+        Lexer l = Lexer.Create(input);
+        Parser p = new Parser(l);
+        Program pr = p.ParseProgram();
+        checkParseErrors(p);
+
+        var stmt = Assert.IsType<ExpressionStatement>(pr.Statements[0]);
+        var exp = Assert.IsType<CallExpression>(stmt.Expression);
+
+        testIdentifier(exp.Function, expectedIdent);
+        Assert.Equal(expectedArgs.Count(), exp.Arguments.Count);
+        for (int i = 0; i < expectedArgs.Length; i++)
+        {
+            Assert.Equal(expectedArgs[i], exp.Arguments[i].String());
         }
     }
 }

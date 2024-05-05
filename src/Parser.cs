@@ -26,6 +26,7 @@ public record Parser
         RegisterInfix(new(Token.NOT_EQ), ParseInfixExpression);
         RegisterInfix(new(Token.LT), ParseInfixExpression);
         RegisterInfix(new(Token.GT), ParseInfixExpression);
+        RegisterInfix(new(Token.LPAREN), ParseCallExpression);
     }
 
     public Token CurrToken { get; set; } = null!;
@@ -272,6 +273,37 @@ public record Parser
         return identifiers;
     }
 
+    public Expression ParseCallExpression(Expression function)
+    {
+        var exp = new CallExpression { Token = CurrToken, Function = function };
+        exp.Arguments = ParseCallArguments();
+        return exp;
+    }
+
+    public List<Expression> ParseCallArguments()
+    {
+        List<Expression> args = [];
+        if (PeekTokenIs(Token.RPAREN))
+        {
+            NextToken();
+            return args;
+        }
+
+        NextToken();
+        args.Add(ParseExpression(Precedence.LOWEST));
+
+        while (PeekTokenIs(Token.COMMA))
+        {
+            NextToken();
+            NextToken();
+            args.Add(ParseExpression(Precedence.LOWEST));
+        }
+
+        if (!ExpectPeek(Token.RPAREN)) return null!;
+
+        return args;
+    }
+
     public static Dictionary<TokenType, Precedence> Precedences => new()
     {
         {new(Token.EQ), Precedence.EQUALS},
@@ -282,6 +314,7 @@ public record Parser
         {new(Token.MINUS), Precedence.SUM},
         {new(Token.SLASH), Precedence.PRODUCT},
         {new(Token.ASTERISK), Precedence.PRODUCT},
+        {new(Token.LPAREN), Precedence.CALL}
     };
 
     public Precedence PeekPrecedence()

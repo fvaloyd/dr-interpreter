@@ -227,11 +227,7 @@ public record FunctionLiteral : Expression
     public string String()
     {
         var sb = new StringBuilder();
-        var @params = new List<string>();
-        foreach (var param in Parameters)
-        {
-            @params.Add(param.String());
-        }
+        var @params = Parameters.Select(x => x.String()).ToList();
         sb.Append(TokenLiteral());
         sb.Append("(");
         sb.Append(string.Join(", ", @params));
@@ -245,3 +241,24 @@ public record FunctionLiteral : Expression
         => Token.Literal;
 }
 
+public record CallExpression : Expression
+{
+    public Token Token { get; set; } = null!;
+    public Expression Function { get; set; } = null!;
+    public List<Expression> Arguments { get; set; } = [];
+
+    public string String()
+    {
+        var sb = new StringBuilder();
+        var args = Arguments.Select(x => x.String()).ToList();
+        sb.Append(Function.String());
+        sb.Append("(");
+        sb.Append(string.Join(", ", args));
+        sb.Append(")");
+
+        return sb.ToString();
+    }
+
+    public string TokenLiteral()
+        => Token.Literal;
+}
