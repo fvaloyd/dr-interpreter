@@ -15,6 +15,7 @@ public record Parser
         RegisterPrefix(new(Token.MINUS), ParsePrefixExpression);
         RegisterPrefix(new(Token.BANG), ParsePrefixExpression);
         RegisterPrefix(new(Token.LPAREN), ParseGroupedExpression);
+        RegisterPrefix(new(Token.IF), ParseIfExpression);
 
         RegisterInfix(new(Token.PLUS), ParseInfixExpression);
         RegisterInfix(new(Token.MINUS), ParseInfixExpression);
@@ -183,6 +184,42 @@ public record Parser
         var exp = ParseExpression(Precedence.LOWEST);
         if (!ExpectPeek(Token.RPAREN)) return null!;
         return exp;
+    }
+
+    public Expression ParseIfExpression()
+    {
+        var exp = new IfExpression { Token = CurrToken };
+
+        if (!ExpectPeek(Token.LPAREN)) return null!;
+
+        NextToken();
+        exp.Codition = ParseExpression(Precedence.LOWEST);
+
+        if (!ExpectPeek(Token.RPAREN)) return null!;
+        if (!ExpectPeek(Token.LBRACE)) return null!;
+
+        exp.Consequence = ParseBlockStatement();
+
+        return exp;
+    }
+
+    public BlockStatement ParseBlockStatement()
+    {
+        var block = new BlockStatement { Token = CurrToken };
+
+        NextToken();
+
+        while (!CurTokenIs(Token.RBRACE) && !CurTokenIs(Token.EOF))
+        {
+            var stmt = ParseStatement();
+            if (stmt is not null)
+            {
+                block.Statements.Add(stmt);
+            }
+            NextToken();
+        }
+
+        return block;
     }
 
     public static Dictionary<TokenType, Precedence> Precedences => new()

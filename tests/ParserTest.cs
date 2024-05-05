@@ -261,4 +261,47 @@ public class ParserTest
         var boolean = Assert.IsType<Boolean>(stmt.Expression);
         Assert.Equal(expectedBoolean, boolean.Value);
     }
+
+    [Fact]
+    public void TestIfExpression()
+    {
+        string input = "if (x < y) { x }";
+        Lexer l = Lexer.Create(input);
+        Parser p = new Parser(l);
+        Program pr = p.ParseProgram();
+        checkParseErrors(p);
+
+        Assert.Single(pr.Statements);
+        var stmt = Assert.IsType<ExpressionStatement>(pr.Statements[0]);
+        var exp = Assert.IsType<IfExpression>(stmt.Expression);
+        testInfixExpression(exp.Codition, "x", "<", "y");
+        Assert.Single(exp.Consequence.Statements);
+        var consequence = Assert.IsType<ExpressionStatement>(exp.Consequence.Statements[0]);
+        testIdentifier(consequence.Expression, "x");
+        Assert.Null(exp.Alternative);
+    }
+
+    [Fact]
+    public void TestIfElseExpression()
+    {
+        string input = "if (x < y) { x } else { y }";
+        Lexer l = Lexer.Create(input);
+        Parser p = new Parser(l);
+        Program pr = p.ParseProgram();
+        checkParseErrors(p);
+
+        Assert.Single(pr.Statements);
+        var stmt = Assert.IsType<ExpressionStatement>(pr.Statements[0]);
+        var exp = Assert.IsType<IfExpression>(stmt.Expression);
+        testInfixExpression(exp.Codition, "x", "<", "y");
+
+        Assert.Single(exp.Consequence.Statements);
+        var consequence = Assert.IsType<ExpressionStatement>(exp.Consequence.Statements[0]);
+        testIdentifier(consequence.Expression, "x");
+
+        Assert.NotNull(exp.Alternative);
+        Assert.Single(exp.Alternative.Statements);
+        var alternative = Assert.IsType<ExpressionStatement>(exp.Alternative.Statements[0]);
+        testIdentifier(alternative.Expression, "y");
+    }
 }

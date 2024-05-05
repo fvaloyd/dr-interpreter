@@ -173,3 +173,47 @@ public record InfixExpression : Expression
         => Token.Literal;
 }
 
+public record IfExpression : Expression
+{
+    public Token Token { get; set; } = null!;
+    public Expression Codition { get; set; } = null!;
+    public BlockStatement Consequence { get; set; } = null!;
+    public BlockStatement? Alternative { get; set; } = null;
+
+    public string String()
+    {
+        var sb = new StringBuilder();
+        sb.Append("if");
+        sb.Append(Codition.String());
+        sb.Append(" ");
+        sb.Append(Consequence.String());
+        if (Alternative is not null)
+        {
+            sb.Append("else");
+            sb.Append(Alternative.String());
+        }
+        return sb.ToString();
+    }
+
+    public string TokenLiteral()
+        => Token.Literal;
+}
+
+public record BlockStatement : Statement
+{
+    public Token Token { get; set; } = null!;
+    public List<Statement> Statements { get; set; } = [];
+
+    public string String()
+    {
+        var sb = new StringBuilder();
+        foreach (var stmt in Statements)
+        {
+            sb.Append(stmt.String());
+        }
+        return sb.ToString();
+    }
+
+    public string TokenLiteral()
+        => Token.Literal;
+}
