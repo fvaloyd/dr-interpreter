@@ -26,6 +26,6 @@ public class EvaluatorTest
     private void testIntegerObject(_Object obj, Int64 expected)
     {
         var integer = Assert.IsType<Integer>(obj);
-        Assert.Equal(integer.Value, expected);
+        Assert.Equal(expected, integer.Value);
     }
 }
