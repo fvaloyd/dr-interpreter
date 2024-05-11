@@ -16,6 +16,8 @@ public class EvaluatorTest
     [Theory]
     [InlineData("5", 5)]
     [InlineData("10", 10)]
+    [InlineData("-5", -5)]
+    [InlineData("-10", -10)]
     public void TestEvalIntegerExpression(string input, Int64 expected)
     {
         var evaluated = testEval(input);
@@ -43,5 +45,19 @@ public class EvaluatorTest
     {
         var boolean = Assert.IsType<_Boolean>(obj);
         Assert.Equal(expected, boolean.Value);
+    }
+
+    [Theory]
+    [InlineData("!true", false)]
+    [InlineData("!false", true)]
+    [InlineData("!5", false)]
+    [InlineData("!!true", true)]
+    [InlineData("!!false", false)]
+    [InlineData("!!5", true)]
+    public void TestBangOperator(string input, bool expected)
+    {
+        var evaluated = testEval(input);
+        Assert.NotNull(evaluated);
+        testBooleanObject(evaluated, expected);
     }
 }
