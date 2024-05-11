@@ -8,6 +8,7 @@ public class Evaluator
             Program pr => evalStatements(pr.Statements),
             ExpressionStatement es => Eval(es.Expression),
             IntegerLiteral il => new Integer(il.Value),
+            Boolean b => new _Boolean(b.Value),
             _ => null
         };
 
