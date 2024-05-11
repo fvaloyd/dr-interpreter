@@ -6,6 +6,7 @@ public static class Evaluator
     static _Boolean FALSE = new(false);
     static _Null NULL = new();
 
+    // ((2 + 3) + 4)
     public static _Object? Eval(Node node)
         => node switch
         {
@@ -14,6 +15,7 @@ public static class Evaluator
             IntegerLiteral il => new Integer(il.Value),
             Boolean b => b.Value ? TRUE : FALSE,
             PrefixExpression pe => evalPrefixExpression(pe.Operator, Eval(pe.Right)!),
+            InfixExpression ie => evalInfixExpression(ie.Operator, Eval(ie.Left)!, Eval(ie.Right)!),
             _ => null
         };
 
@@ -49,4 +51,33 @@ public static class Evaluator
         var value = ((Integer)right).Value;
         return new Integer(-value);
     }
+
+    private static _Object evalInfixExpression(string _operator, _Object left, _Object right)
+    {
+        if (left.Type() == _Object.INTEGER_OBJ && right.Type() == _Object.INTEGER_OBJ) return evalIntegerInfixExpression(_operator, left, right);
+        if (_operator == "==") return nativeBoolToBooleanObject(left == right);
+        if (_operator == "!=") return nativeBoolToBooleanObject(left != right);
+        return NULL;
+    }
+
+    private static _Object evalIntegerInfixExpression(string _operator, _Object left, _Object right)
+    {
+        var leftVal = ((Integer)left).Value;
+        var rightVal = ((Integer)right).Value;
+        return _operator switch
+        {
+            "+" => new Integer(leftVal + rightVal),
+            "-" => new Integer(leftVal - rightVal),
+            "*" => new Integer(leftVal * rightVal),
+            "/" => new Integer(leftVal / rightVal),
+            "<" => nativeBoolToBooleanObject(leftVal < rightVal),
+            ">" => nativeBoolToBooleanObject(leftVal > rightVal),
+            "==" => nativeBoolToBooleanObject(leftVal == rightVal),
+            "!=" => nativeBoolToBooleanObject(leftVal != rightVal),
+            _ => NULL
+        };
+    }
+
+    private static _Object nativeBoolToBooleanObject(bool input)
+        => input ? TRUE : FALSE;
 }
