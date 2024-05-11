@@ -37,8 +37,11 @@ public record Repl
                 PrintParserErros(p.Errors);
                 continue;
             }
-
-            Console.WriteLine(pr.String());
+            _Object? evaluated = Evaluator.Eval(pr);
+            if (evaluated is not null)
+            {
+                Console.WriteLine(evaluated.Inspect());
+            }
         }
     }
 
