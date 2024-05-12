@@ -9,22 +9,22 @@ public static class Evaluator
     public static _Object? Eval(Node node)
         => node switch
         {
-            Program pr => evalProgram(pr.Statements),
+            Program pr => evalProgram(pr),
+            BlockStatement bs => evalBlockStatement(bs),
             ExpressionStatement es => Eval(es.Expression),
+            ReturnStatement rs => new ReturnValue(Eval(rs.ReturnValue)!),
             IntegerLiteral il => new Integer(il.Value),
             Boolean b => b.Value ? TRUE : FALSE,
             PrefixExpression pe => evalPrefixExpression(pe.Operator, Eval(pe.Right)!),
             InfixExpression ie => evalInfixExpression(ie.Operator, Eval(ie.Left)!, Eval(ie.Right)!),
-            BlockStatement bs => evalBlockStatement(bs),
             IfExpression ie => evalIfExpression(ie),
-            ReturnStatement rs => new ReturnValue(Eval(rs.ReturnValue)!),
             _ => null
         };
 
-    static _Object? evalProgram(List<Statement> stmts)
+    static _Object? evalProgram(Program pr)
     {
         _Object? result = null;
-        foreach (var stmt in stmts)
+        foreach (var stmt in pr.Statements)
         {
             result = Eval(stmt);
             if (result is ReturnValue rv)
@@ -41,7 +41,7 @@ public static class Evaluator
         foreach (var stmt in block.Statements)
         {
             result = Eval(stmt);
-            if (result is not null && result.Type() == _Object.RETURN_VALUE_OBJ) return result;
+            if (result!.Type() == _Object.RETURN_VALUE_OBJ) return result;
         }
         return result;
     }

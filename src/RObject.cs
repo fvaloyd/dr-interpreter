@@ -43,8 +43,8 @@ public record _Null : _Object
 public record ReturnValue(_Object Value) : _Object
 {
     public override string Inspect()
-        => _Object.RETURN_VALUE_OBJ;
+        => Value.Inspect();
 
     public override string Type()
-        => Value.Inspect();
+        => _Object.RETURN_VALUE_OBJ;
 }
