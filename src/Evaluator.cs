@@ -9,23 +9,39 @@ public static class Evaluator
     public static _Object? Eval(Node node)
         => node switch
         {
-            Program pr => evalStatements(pr.Statements),
+            Program pr => evalProgram(pr.Statements),
             ExpressionStatement es => Eval(es.Expression),
             IntegerLiteral il => new Integer(il.Value),
             Boolean b => b.Value ? TRUE : FALSE,
             PrefixExpression pe => evalPrefixExpression(pe.Operator, Eval(pe.Right)!),
             InfixExpression ie => evalInfixExpression(ie.Operator, Eval(ie.Left)!, Eval(ie.Right)!),
-            BlockStatement bs => evalStatements(bs.Statements),
+            BlockStatement bs => evalBlockStatement(bs),
             IfExpression ie => evalIfExpression(ie),
+            ReturnStatement rs => new ReturnValue(Eval(rs.ReturnValue)!),
             _ => null
         };
 
-    static _Object? evalStatements(List<Statement> stmts)
+    static _Object? evalProgram(List<Statement> stmts)
     {
         _Object? result = null;
         foreach (var stmt in stmts)
         {
             result = Eval(stmt);
+            if (result is ReturnValue rv)
+            {
+                return rv.Value;
+            }
+        }
+        return result;
+    }
+
+    static _Object? evalBlockStatement(BlockStatement block)
+    {
+        _Object? result = null;
+        foreach (var stmt in block.Statements)
+        {
+            result = Eval(stmt);
+            if (result is not null && result.Type() == _Object.RETURN_VALUE_OBJ) return result;
         }
         return result;
     }
@@ -85,7 +101,7 @@ public static class Evaluator
     static _Object? evalIfExpression(IfExpression ie)
     {
         var condition = Eval(ie.Codition);
-        //if (condition is null) return NULL;
+        if (condition is null) return NULL;
         if (isTruthy(condition)) return Eval(ie.Consequence);
         else if (ie.Alternative is not null) return Eval(ie.Alternative);
         else return NULL;

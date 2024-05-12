@@ -110,4 +110,24 @@ public class EvaluatorTest
             Assert.Equal(Evaluator.NULL, evaluated);
         }
     }
+
+    [Theory]
+    [InlineData("return 10;", 10)]
+    [InlineData("return 10; 9;", 10)]
+    [InlineData("return 2 * 5; 9;", 10)]
+    [InlineData("9; return 2 * 5; 9;", 10)]
+    [InlineData("""
+            if (10 > 1) {
+                if (10 > 1) {
+                    return 10;
+                }
+                return 1;
+            }
+            """, 10)]
+    public void TestReturnStatement(string input, Int64 expected)
+    {
+        var evaluated = testEval(input);
+        Assert.NotNull(evaluated);
+        testIntegerObject(evaluated, expected);
+    }
 }
