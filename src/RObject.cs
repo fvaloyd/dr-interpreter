@@ -8,6 +8,7 @@ public abstract record _Object
     public const string BOOLEAN_OBJ = "BOOLEAN";
     public const string NULL_OBJ = "NULL";
     public const string RETURN_VALUE_OBJ = "RETURN_VALUE";
+    public const string ERROR_OBJ = "ERROR";
 
     public abstract ObjectType Type();
     public abstract string Inspect();
@@ -48,3 +49,13 @@ public record ReturnValue(_Object Value) : _Object
     public override string Type()
         => _Object.RETURN_VALUE_OBJ;
 }
+
+public record Error(string Message) : _Object
+{
+    public override string Inspect()
+        => $"ERROR: {Message}";
+
+    public override string Type()
+        => _Object.ERROR_OBJ;
+}
+

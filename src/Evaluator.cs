@@ -7,19 +7,42 @@ public static class Evaluator
     public static _Null NULL = new();
 
     public static _Object? Eval(Node node)
-        => node switch
+    {
+        switch (node)
         {
-            Program pr => evalProgram(pr),
-            BlockStatement bs => evalBlockStatement(bs),
-            ExpressionStatement es => Eval(es.Expression),
-            ReturnStatement rs => new ReturnValue(Eval(rs.ReturnValue)!),
-            IntegerLiteral il => new Integer(il.Value),
-            Boolean b => b.Value ? TRUE : FALSE,
-            PrefixExpression pe => evalPrefixExpression(pe.Operator, Eval(pe.Right)!),
-            InfixExpression ie => evalInfixExpression(ie.Operator, Eval(ie.Left)!, Eval(ie.Right)!),
-            IfExpression ie => evalIfExpression(ie),
-            _ => null
-        };
+            case Program pr:
+                return evalProgram(pr);
+            case BlockStatement bs:
+                return evalBlockStatement(bs);
+            case ExpressionStatement es:
+                return Eval(es.Expression);
+            case ReturnStatement rs:
+                var val = Eval(rs.ReturnValue);
+                if (isError(val)) return val;
+                return new ReturnValue(val!);
+            case IntegerLiteral it:
+                return new Integer(it.Value);
+            case Boolean b:
+                return b.Value ? TRUE : FALSE;
+            case PrefixExpression pe:
+                var right = Eval(pe.Right);
+                if (isError(right)) return right;
+                return evalPrefixExpression(pe.Operator, right!);
+            case InfixExpression ie:
+                var left = Eval(ie.Left);
+                if (isError(left)) return left;
+                var ieRight = Eval(ie.Right);
+                if (isError(ieRight)) return ieRight;
+                return evalInfixExpression(ie.Operator, left!, ieRight!);
+            case IfExpression ie:
+                return evalIfExpression(ie);
+            default:
+                return null;
+        }
+    }
+
+    static bool isError(_Object? obj)
+        => obj is not null && obj.Type() == _Object.ERROR_OBJ;
 
     static _Object? evalProgram(Program pr)
     {
@@ -27,10 +50,8 @@ public static class Evaluator
         foreach (var stmt in pr.Statements)
         {
             result = Eval(stmt);
-            if (result is ReturnValue rv)
-            {
-                return rv.Value;
-            }
+            if (result is ReturnValue rv) return rv.Value;
+            if (result is Error err) return err;
         }
         return result;
     }
@@ -41,6 +62,11 @@ public static class Evaluator
         foreach (var stmt in block.Statements)
         {
             result = Eval(stmt);
+            if (result is not null)
+            {
+                var rt = result.Type();
+                if (rt == _Object.RETURN_VALUE_OBJ || rt == _Object.ERROR_OBJ) return result;
+            }
             if (result!.Type() == _Object.RETURN_VALUE_OBJ) return result;
         }
         return result;
@@ -51,7 +77,7 @@ public static class Evaluator
         {
             "!" => evalBangOperatorExpression(right),
             "-" => evalMinusPrefixOperatorExpression(right),
-            _ => null
+            _ => new Error($"unknown operator: {_operator}{right.Type()}")
         };
 
     static _Object evalBangOperatorExpression(_Object right)
@@ -64,7 +90,7 @@ public static class Evaluator
 
     static _Object evalMinusPrefixOperatorExpression(_Object right)
     {
-        if (right.Type() != _Object.INTEGER_OBJ) return NULL;
+        if (right.Type() != _Object.INTEGER_OBJ) return new Error($"unknown operator: -{right.Type()}");
         var value = ((Integer)right).Value;
         return new Integer(-value);
     }
@@ -74,7 +100,8 @@ public static class Evaluator
         if (left.Type() == _Object.INTEGER_OBJ && right.Type() == _Object.INTEGER_OBJ) return evalIntegerInfixExpression(_operator, left, right);
         if (_operator == "==") return nativeBoolToBooleanObject(left == right);
         if (_operator == "!=") return nativeBoolToBooleanObject(left != right);
-        return NULL;
+        if (left.Type() != right.Type()) return new Error($"type mismatch: {left.Type()} {_operator} {right.Type()}");
+        return new Error($"unknown operator: {left.Type()} {_operator} {right.Type()}");
     }
 
     static _Object evalIntegerInfixExpression(string _operator, _Object left, _Object right)
@@ -91,7 +118,7 @@ public static class Evaluator
             ">" => nativeBoolToBooleanObject(leftVal > rightVal),
             "==" => nativeBoolToBooleanObject(leftVal == rightVal),
             "!=" => nativeBoolToBooleanObject(leftVal != rightVal),
-            _ => NULL
+            _ => new Error($"unknown operator: {left.Type()} {_operator} {right.Type()}")
         };
     }
 
@@ -101,8 +128,8 @@ public static class Evaluator
     static _Object? evalIfExpression(IfExpression ie)
     {
         var condition = Eval(ie.Codition);
-        if (condition is null) return NULL;
-        if (isTruthy(condition)) return Eval(ie.Consequence);
+        if (isError(condition)) return condition;
+        if (isTruthy(condition!)) return Eval(ie.Consequence);
         else if (ie.Alternative is not null) return Eval(ie.Alternative);
         else return NULL;
     }

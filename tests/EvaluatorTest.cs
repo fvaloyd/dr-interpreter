@@ -130,4 +130,26 @@ public class EvaluatorTest
         Assert.NotNull(evaluated);
         testIntegerObject(evaluated, expected);
     }
+
+    [Theory]
+    [InlineData("5 + true", "type mismatch: INTEGER + BOOLEAN")]
+    [InlineData("5 + true; 5", "type mismatch: INTEGER + BOOLEAN")]
+    [InlineData("-true", "unknown operator: -BOOLEAN")]
+    [InlineData("true + false", "unknown operator: BOOLEAN + BOOLEAN")]
+    [InlineData("5; true + false; 5", "unknown operator: BOOLEAN + BOOLEAN")]
+    [InlineData("if (10 > 1) { true + false; }", "unknown operator: BOOLEAN + BOOLEAN")]
+    [InlineData("""
+            if (10 > 1) {
+                if (10 > 1) {
+                    return true + false;
+                }
+                return 1;
+            }
+            """, "unknown operator: BOOLEAN + BOOLEAN")]
+    public void TestErrorHandling(string input, string expectedMessage)
+    {
+        var evaluated = testEval(input);
+        var errObj = Assert.IsType<Error>(evaluated);
+        Assert.Equal(expectedMessage, errObj.Message);
+    }
 }
