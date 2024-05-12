@@ -88,4 +88,26 @@ public class EvaluatorTest
         Assert.NotNull(evaluated);
         testBooleanObject(evaluated, expected);
     }
+
+    [Theory]
+    [InlineData("if (true) { 10 }", 10)]
+    [InlineData("if (false) { 10 }", null)]
+    [InlineData("if (1) { 10 }", 10)]
+    [InlineData("if (1 < 2) { 10 }", 10)]
+    [InlineData("if (1 > 2) { 10 }", null)]
+    [InlineData("if (1 > 2) { 10 } else { 20 }", 20)]
+    [InlineData("if (1 < 2) { 10 } else { 20 }", 10)]
+    public void TestIfElseExpression(string input, Object expected)
+    {
+        var evaluated = testEval(input);
+        Assert.NotNull(evaluated);
+        if (expected is not null)
+        {
+            testIntegerObject(evaluated, (int)expected);
+        }
+        else
+        {
+            Assert.Equal(Evaluator.NULL, evaluated);
+        }
+    }
 }
