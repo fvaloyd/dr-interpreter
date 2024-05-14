@@ -59,3 +59,15 @@ public record Error(string Message) : _Object
         => _Object.ERROR_OBJ;
 }
 
+public record Environment
+{
+    public Dictionary<string, _Object> Store { get; } = new();
+
+    public bool Get(string name, out _Object? obj)
+        => Store.TryGetValue(name, out obj);
+    public _Object? Set(string name, _Object val)
+    {
+        var result = Store.TryAdd(name, val);
+        return result ? val : null;
+    }
+}

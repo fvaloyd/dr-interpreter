@@ -22,6 +22,7 @@ public record Repl
 
     public static void Start()
     {
+        var env = new Environment();
         Console.WriteLine("Type in commands");
         while (true)
         {
@@ -37,7 +38,7 @@ public record Repl
                 PrintParserErros(p.Errors);
                 continue;
             }
-            _Object? evaluated = Evaluator.Eval(pr);
+            _Object? evaluated = Evaluator.Eval(pr, env);
             if (evaluated is not null)
             {
                 Console.WriteLine(evaluated.Inspect());

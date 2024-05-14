@@ -6,62 +6,84 @@ public static class Evaluator
     public static _Boolean FALSE = new(false);
     public static _Null NULL = new();
 
-    public static _Object? Eval(Node node)
+    public static _Object? Eval(Node node, Environment env)
     {
         switch (node)
         {
             case Program pr:
-                return evalProgram(pr);
+                return evalProgram(pr, env);
             case BlockStatement bs:
-                return evalBlockStatement(bs);
+                return evalBlockStatement(bs, env);
             case ExpressionStatement es:
-                return Eval(es.Expression);
+                return Eval(es.Expression, env);
             case ReturnStatement rs:
-                var val = Eval(rs.ReturnValue);
-                if (isError(val)) return val;
-                return new ReturnValue(val!);
+                {
+                    var val = Eval(rs.ReturnValue, env);
+                    if (isError(val)) return val;
+                    return new ReturnValue(val!);
+                }
             case IntegerLiteral it:
                 return new Integer(it.Value);
             case Boolean b:
                 return b.Value ? TRUE : FALSE;
             case PrefixExpression pe:
-                var right = Eval(pe.Right);
-                if (isError(right)) return right;
-                return evalPrefixExpression(pe.Operator, right!);
+                {
+                    var right = Eval(pe.Right, env);
+                    if (isError(right)) return right;
+                    return evalPrefixExpression(pe.Operator, right!);
+                }
             case InfixExpression ie:
-                var left = Eval(ie.Left);
-                if (isError(left)) return left;
-                var ieRight = Eval(ie.Right);
-                if (isError(ieRight)) return ieRight;
-                return evalInfixExpression(ie.Operator, left!, ieRight!);
+                {
+                    var left = Eval(ie.Left, env);
+                    if (isError(left)) return left;
+                    var right = Eval(ie.Right, env);
+                    if (isError(right)) return right;
+                    return evalInfixExpression(ie.Operator, left!, right!);
+                }
             case IfExpression ie:
-                return evalIfExpression(ie);
+                return evalIfExpression(ie, env);
+            case LetStatement ls:
+                {
+                    var val = Eval(ls.Value, env);
+                    if (isError(val)) return val;
+                    env.Set(ls.Name.Value, val!);
+                    break;
+                }
+            case Identifier i:
+                return evalIdentifier(i, env);
             default:
                 return null;
         }
+        return null;
+    }
+
+    static _Object evalIdentifier(Identifier i, Environment env)
+    {
+        var result = env.Get(i.Value, out var obj);
+        return result ? obj! : new Error($"identifier not found: {i.Value}");
     }
 
     static bool isError(_Object? obj)
         => obj is not null && obj.Type() == _Object.ERROR_OBJ;
 
-    static _Object? evalProgram(Program pr)
+    static _Object? evalProgram(Program pr, Environment env)
     {
         _Object? result = null;
         foreach (var stmt in pr.Statements)
         {
-            result = Eval(stmt);
+            result = Eval(stmt, env);
             if (result is ReturnValue rv) return rv.Value;
             if (result is Error err) return err;
         }
         return result;
     }
 
-    static _Object? evalBlockStatement(BlockStatement block)
+    static _Object? evalBlockStatement(BlockStatement block, Environment env)
     {
         _Object? result = null;
         foreach (var stmt in block.Statements)
         {
-            result = Eval(stmt);
+            result = Eval(stmt, env);
             if (result is not null)
             {
                 var rt = result.Type();
@@ -125,12 +147,12 @@ public static class Evaluator
     static _Object nativeBoolToBooleanObject(bool input)
         => input ? TRUE : FALSE;
 
-    static _Object? evalIfExpression(IfExpression ie)
+    static _Object? evalIfExpression(IfExpression ie, Environment env)
     {
-        var condition = Eval(ie.Codition);
+        var condition = Eval(ie.Codition, env);
         if (isError(condition)) return condition;
-        if (isTruthy(condition!)) return Eval(ie.Consequence);
-        else if (ie.Alternative is not null) return Eval(ie.Alternative);
+        if (isTruthy(condition!)) return Eval(ie.Consequence, env);
+        else if (ie.Alternative is not null) return Eval(ie.Alternative, env);
         else return NULL;
     }
 
