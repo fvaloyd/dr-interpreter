@@ -146,10 +146,21 @@ public class EvaluatorTest
                 return 1;
             }
             """, "unknown operator: BOOLEAN + BOOLEAN")]
+    [InlineData("foobar", "identifier not found foobar")]
     public void TestErrorHandling(string input, string expectedMessage)
     {
         var evaluated = testEval(input);
         var errObj = Assert.IsType<Error>(evaluated);
         Assert.Equal(expectedMessage, errObj.Message);
+    }
+
+    [Theory]
+    [InlineData("let a = 5; a;", 5)]
+    [InlineData("let a = 5 * 5; a;", 25)]
+    [InlineData("let a = 5; let b = a; b;", 5)]
+    [InlineData("let a = 5; let b = a; let c = a + b + 5;", 15)]
+    public void TestLetStatements(string input, int expected)
+    {
+        testIntegerObject(testEval(input)!, expected);
     }
 }
