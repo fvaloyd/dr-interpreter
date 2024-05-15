@@ -51,6 +51,14 @@ public static class Evaluator
                 }
             case Identifier i:
                 return evalIdentifier(i, env);
+            case FunctionLiteral fl:
+                return new Function(fl.Parameters, fl.Body, env);
+            case CallExpression ce:
+                {
+                    var function = Eval(ce.Function, env);
+                    if (isError(function)) return function;
+                    break;
+                }
             default:
                 return null;
         }

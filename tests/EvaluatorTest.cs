@@ -163,4 +163,25 @@ public class EvaluatorTest
     {
         testIntegerObject(testEval(input)!, expected);
     }
+
+    [Fact]
+    public void TestFunctionObject()
+    {
+        string input = "fn(x) { x + 2; };";
+        var evaluated = testEval(input);
+        var fn = Assert.IsType<Function>(evaluated);
+        Assert.Equal("x", fn.Parameters.First().String());
+        Assert.Equal("(x + 2)", fn.Body.String());
+    }
+
+    [Theory]
+    [InlineData("let identity = fn(x) { x; }; identity(5);", 5)]
+    [InlineData("let identity = fn(x) { return x; }; identity(5);", 5)]
+    [InlineData("let double = fn(x) { x * 2; }; double(5);", 10)]
+    [InlineData("let add = fn(x, y) { x + y; }; add(5, 5);", 10)]
+    [InlineData("let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20)]
+    public void TestFunctionApplication(string input, int expected)
+    {
+        testIntegerObject(testEval(input)!, expected);
+    }
 }
