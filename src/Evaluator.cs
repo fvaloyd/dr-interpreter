@@ -57,12 +57,26 @@ public static class Evaluator
                 {
                     var function = Eval(ce.Function, env);
                     if (isError(function)) return function;
+                    var args = evalExpressions(ce.Arguments, env);
+                    if (args.Count == 1 && isError(args[0])) return args[0];
                     break;
                 }
             default:
                 return null;
         }
         return null;
+    }
+
+    static List<_Object> evalExpressions(List<Expression> exps, Environment env)
+    {
+        List<_Object> result = [];
+        foreach (var e in exps)
+        {
+            var evaluated = Eval(e, env);
+            if (isError(evaluated)) return [evaluated!];
+            result.Add(evaluated!);
+        }
+        return result;
     }
 
     static _Object evalIdentifier(Identifier i, Environment env)

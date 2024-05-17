@@ -64,9 +64,24 @@ public record Error(string Message) : _Object
 public record Environment
 {
     public Dictionary<string, _Object> Store { get; } = new();
+    public Environment? Outer { get; set; } = null;
+
+    public Environment NewEnclosedEnvironment(Environment outer)
+    {
+        var env = new Environment() { Outer = outer };
+        return env;
+    }
 
     public bool Get(string name, out _Object? obj)
-        => Store.TryGetValue(name, out obj);
+    {
+        var result = Store.TryGetValue(name, out obj);
+        if (!result && Outer is not null)
+        {
+            result = Outer.Get(name, out obj);
+        }
+        return result;
+    }
+
     public _Object? Set(string name, _Object val)
     {
         var result = Store.TryAdd(name, val);
