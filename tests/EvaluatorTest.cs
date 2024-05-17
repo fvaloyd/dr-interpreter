@@ -124,6 +124,21 @@ public class EvaluatorTest
                 return 1;
             }
             """, 10)]
+    [InlineData("""
+            let f = fn(x) {
+                return x;
+                x + 10;
+            };
+            f(10);
+            """, 10)]
+    [InlineData("""
+            let f = fn(x) {
+                let result = x + 10;
+                return result;
+                return 10;
+            };
+            f(10);
+            """, 20)]
     public void TestReturnStatement(string input, Int64 expected)
     {
         var evaluated = testEval(input);

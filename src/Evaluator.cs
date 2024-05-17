@@ -59,12 +59,48 @@ public static class Evaluator
                     if (isError(function)) return function;
                     var args = evalExpressions(ce.Arguments, env);
                     if (args.Count == 1 && isError(args[0])) return args[0];
-                    break;
+                    return applyFunction(function, args);
                 }
             default:
                 return null;
         }
         return null;
+    }
+
+    static _Object applyFunction(_Object func, List<_Object> args)
+    {
+        Function function = (Function)func;
+        var extendedEnv = extendFunctionEvn(function, args);
+        var evaluated = Eval(function.Body, extendedEnv);
+        return unwrapReturnValue(evaluated!);
+    }
+
+    static Environment extendFunctionEvn(Function func, List<_Object> args)
+    {
+        var env = Environment.NewEnclosedEnvironment(func.env);
+        for (int i = 0; i < func.Parameters.Count; i++)
+        {
+
+        }
+        foreach (var param in func.Parameters)
+        {
+            env.Set(param.Value, args[0]);
+        }
+        return env;
+    }
+
+    static _Object unwrapReturnValue(_Object obj)
+    {
+        ReturnValue returnValue = null!;
+        try
+        {
+            returnValue = (ReturnValue)obj;
+            return returnValue;
+        }
+        catch (Exception)
+        {
+            return obj;
+        }
     }
 
     static List<_Object> evalExpressions(List<Expression> exps, Environment env)
@@ -111,7 +147,7 @@ public static class Evaluator
                 var rt = result.Type();
                 if (rt == _Object.RETURN_VALUE_OBJ || rt == _Object.ERROR_OBJ) return result;
             }
-            if (result!.Type() == _Object.RETURN_VALUE_OBJ) return result;
+            if (result is not null && result!.Type() == _Object.RETURN_VALUE_OBJ) return result;
         }
         return result;
     }

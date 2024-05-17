@@ -66,7 +66,7 @@ public record Environment
     public Dictionary<string, _Object> Store { get; } = new();
     public Environment? Outer { get; set; } = null;
 
-    public Environment NewEnclosedEnvironment(Environment outer)
+    public static Environment NewEnclosedEnvironment(Environment outer)
     {
         var env = new Environment() { Outer = outer };
         return env;
