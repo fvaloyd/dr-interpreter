@@ -56,7 +56,7 @@ public static class Evaluator
             case CallExpression ce:
                 {
                     var function = Eval(ce.Function, env);
-                    if (isError(function)) return function;
+                    if (isError(function) || function is null) return function;
                     var args = evalExpressions(ce.Arguments, env);
                     if (args.Count == 1 && isError(args[0])) return args[0];
                     return applyFunction(function, args);
