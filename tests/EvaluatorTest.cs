@@ -199,4 +199,13 @@ public class EvaluatorTest
     {
         testIntegerObject(testEval(input)!, expected);
     }
+
+    [Fact]
+    public void TestStringLiteral()
+    {
+        var input = "\"Hello world!\"";
+        var evaluated = testEval(input);
+        var str = Assert.IsType<_String>(evaluated);
+        Assert.Equal("Hello world!", str.Value);
+    }
 }

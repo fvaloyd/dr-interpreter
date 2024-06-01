@@ -26,6 +26,8 @@ public static class Evaluator
                 return new Integer(it.Value);
             case Boolean b:
                 return b.Value ? TRUE : FALSE;
+            case StringLiteral sl:
+                return new _String(sl.Value);
             case PrefixExpression pe:
                 {
                     var right = Eval(pe.Right, env);

@@ -11,6 +11,7 @@ public abstract record _Object
     public const string RETURN_VALUE_OBJ = "RETURN_VALUE";
     public const string ERROR_OBJ = "ERROR";
     public const string FUNCTION_OBJ = "FUNCTION";
+    public const string STRING_OBJ = "STRING";
 
     public abstract ObjectType Type();
     public abstract string Inspect();
@@ -59,6 +60,15 @@ public record Error(string Message) : _Object
 
     public override string Type()
         => _Object.ERROR_OBJ;
+}
+
+public record _String(string Value) : _Object
+{
+    public override string Inspect()
+        => _Object.STRING_OBJ;
+
+    public override string Type()
+        => Value;
 }
 
 public record Environment
