@@ -375,4 +375,19 @@ public class ParserTest
             Assert.Equal(expectedArgs[i], exp.Arguments[i].String());
         }
     }
+
+    [Fact]
+    public void TestStringLiteralExpression()
+    {
+        var input = "\"Hello world\";";
+
+        Lexer l = Lexer.Create(input);
+        Parser p = new(l);
+        Program pr = p.ParseProgram();
+        checkParseErrors(p);
+
+        var stmt = Assert.IsType<ExpressionStatement>(pr.Statements[0]);
+        var literal = Assert.IsType<StringLiteral>(stmt.Expression);
+        Assert.Equal("Hello world", literal.Value);
+    }
 }

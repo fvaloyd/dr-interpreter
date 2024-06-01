@@ -262,3 +262,12 @@ public record CallExpression : Expression
     public string TokenLiteral()
         => Token.Literal;
 }
+
+public record StringLiteral(Token Token, string Value) : Expression
+{
+    public string String()
+        => Token.Literal;
+
+    public string TokenLiteral()
+        => Token.Literal;
+}

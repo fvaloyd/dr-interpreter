@@ -137,7 +137,7 @@ public record Lexer
     {
         int position = ReadPosition;
         ReadChar();
-        while (Ch != '"' || Ch != 0)
+        while (Ch != '"')
         {
             ReadChar();
         }

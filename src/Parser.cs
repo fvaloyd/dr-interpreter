@@ -17,6 +17,7 @@ public record Parser
         RegisterPrefix(new(Token.LPAREN), ParseGroupedExpression);
         RegisterPrefix(new(Token.IF), ParseIfExpression);
         RegisterPrefix(new(Token.FUNCTION), ParseFunctionLiteral);
+        RegisterPrefix(new(Token.STRING), ParseStringLiteral);
 
         RegisterInfix(new(Token.PLUS), ParseInfixExpression);
         RegisterInfix(new(Token.MINUS), ParseInfixExpression);
@@ -57,6 +58,9 @@ public record Parser
         }
         return p;
     }
+
+    private Expression ParseStringLiteral()
+        => new StringLiteral(CurrToken, CurrToken.Literal);
 
     public Statement? ParseStatement()
     {
