@@ -1,3 +1,6 @@
+
+using System.Text;
+
 namespace Interpreter;
 
 public record Lexer
@@ -50,6 +53,10 @@ public record Lexer
                 {
                     tok = new(new(Token.ASSIGN), Ch);
                 }
+                break;
+            case '"':
+                string s = ReadString();
+                tok = new(new(Token.STRING), s);
                 break;
             case '+':
                 tok = new(new(Token.PLUS), Ch);
@@ -124,6 +131,17 @@ public record Lexer
 
         ReadChar();
         return tok;
+    }
+
+    private string ReadString()
+    {
+        int position = ReadPosition;
+        ReadChar();
+        while (Ch != '"' || Ch != 0)
+        {
+            ReadChar();
+        }
+        return Input[position..Position];
     }
 
     public void SkipWithSpace()

@@ -27,6 +27,8 @@ public class LexerTest
 
         10 == 10;
         10 != 9;
+        "foobar"
+        "foo bar"
         """;
 
         Token[] tokensExpect = new Token[]
@@ -104,6 +106,8 @@ public class LexerTest
             new(new(Token.NOT_EQ), "!="),
             new(new(Token.INT), "9"),
             new(new(Token.SEMICOLON), ";"),
+            new(new(Token.STRING), "foobar"),
+            new(new(Token.STRING), "foo bar"),
             new(new(Token.EOF), "")
         };
 
