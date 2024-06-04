@@ -141,8 +141,8 @@ public record Lexer
         {
             ReadChar();
         }
-        ReadChar();
-        return Input[position..(Position - 1)];
+        //ReadChar();
+        return Input[position..Position];
     }
 
     public void SkipWithSpace()
