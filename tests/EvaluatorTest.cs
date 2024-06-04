@@ -220,4 +220,26 @@ public class EvaluatorTest
         var str = Assert.IsType<_String>(evaluated);
         Assert.Equal("Hello World!", str.Value);
     }
+
+    [Theory]
+    [InlineData("""len("")""", 0)]
+    [InlineData("""len("four")""", 4)]
+    [InlineData("""len("hello world")""", 11)]
+    [InlineData("""len(1)""", "argument to `len` not supported, got INTEGER")]
+    [InlineData("""len("one", "two")""", "wrong number of arguments. got=2, want=1")]
+    public void TestBuiltinFunctions(string input, Object expected)
+    {
+        var evaluated = testEval(input);
+
+        switch (expected)
+        {
+            case int i:
+                testIntegerObject(evaluated!, i);
+                break;
+            case string s:
+                var errObj = Assert.IsType<Error>(evaluated);
+                Assert.Equal(s, errObj.Message);
+                break;
+        }
+    }
 }

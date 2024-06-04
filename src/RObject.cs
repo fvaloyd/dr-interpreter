@@ -12,9 +12,27 @@ public abstract record _Object
     public const string ERROR_OBJ = "ERROR";
     public const string FUNCTION_OBJ = "FUNCTION";
     public const string STRING_OBJ = "STRING";
+    public const string BUILTIN = "BUILTIN";
 
     public abstract ObjectType Type();
     public abstract string Inspect();
+
+    public static Dictionary<string, Builtin> Builtins => new()
+    {
+        { "len", new((params _Object[] args) => {
+                if (args.Length != 1)
+                {
+                    return new Error($"wrong number of arguments. got={args.Length}, want=1");
+                }
+                switch (args[0])
+                {
+                    case _String s:
+                        return new Integer(s.Value.Length);
+                    default:
+                        return new Error($"argument to `len` not supported, got {args[0].Type()}");
+                }
+                })},
+    };
 }
 
 public record Integer(Int64 Value) : _Object
@@ -106,7 +124,7 @@ public record Function(List<Identifier> Parameters, BlockStatement Body, Environ
     {
         var sb = new StringBuilder();
         List<string> @params = Parameters.Select(p => p.String()).ToList();
-        sb.Append("fn");
+        sb.Append("Fn");
         sb.Append("(");
         sb.Append(string.Join(", ", @params));
         sb.Append(") {\n");
@@ -117,4 +135,15 @@ public record Function(List<Identifier> Parameters, BlockStatement Body, Environ
 
     public override string Type()
         => _Object.FUNCTION_OBJ;
+}
+
+public delegate _Object BuiltinFunction(params _Object[] args);
+
+public record Builtin(BuiltinFunction Fn) : _Object
+{
+    public override string Inspect()
+        => "builtin function";
+
+    public override string Type()
+        => _Object.BUILTIN;
 }

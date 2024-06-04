@@ -71,10 +71,18 @@ public static class Evaluator
 
     static _Object applyFunction(_Object func, List<_Object> args)
     {
-        Function function = (Function)func;
-        var extendedEnv = extendFunctionEvn(function, args);
-        var evaluated = Eval(function.Body, extendedEnv);
-        return unwrapReturnValue(evaluated!);
+        switch (func)
+        {
+            case Function f:
+                Function function = (Function)func;
+                var extendedEnv = extendFunctionEvn(function, args);
+                var evaluated = Eval(function.Body, extendedEnv);
+                return unwrapReturnValue(evaluated!);
+            case Builtin fn:
+                return fn.Fn(args.ToArray());
+            default:
+                return new Error($"not a function: {func.Type()}");
+        }
     }
 
     static Environment extendFunctionEvn(Function func, List<_Object> args)
@@ -119,8 +127,13 @@ public static class Evaluator
 
     static _Object evalIdentifier(Identifier i, Environment env)
     {
-        var result = env.Get(i.Value, out var obj);
-        return result ? obj! : new Error($"identifier not found: {i.Value}");
+        env.Get(i.Value, out var obj);
+        if (obj is not null) return obj;
+
+        _Object.Builtins.TryGetValue(i.Value, out var builtin);
+        if (builtin is not null) return builtin;
+
+        return new Error($"identifier not found: {i.Value}");
     }
 
     static bool isError(_Object? obj)
