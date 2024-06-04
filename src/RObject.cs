@@ -65,10 +65,10 @@ public record Error(string Message) : _Object
 public record _String(string Value) : _Object
 {
     public override string Inspect()
-        => _Object.STRING_OBJ;
+        => Value;
 
     public override string Type()
-        => Value;
+        => _Object.STRING_OBJ;
 }
 
 public record Environment

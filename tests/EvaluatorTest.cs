@@ -162,6 +162,7 @@ public class EvaluatorTest
             }
             """, "unknown operator: BOOLEAN + BOOLEAN")]
     [InlineData("foobar", "identifier not found: foobar")]
+    [InlineData("\"Hello\" - \"World\"", "unknown operator: STRING - STRING")]
     public void TestErrorHandling(string input, string expectedMessage)
     {
         var evaluated = testEval(input);
@@ -207,5 +208,16 @@ public class EvaluatorTest
         var evaluated = testEval(input);
         var str = Assert.IsType<_String>(evaluated);
         Assert.Equal("Hello world!", str.Value);
+    }
+
+    [Fact]
+    public void TestStringConcatenation()
+    {
+        var input = """
+            "Hello " + "World!"
+            """;
+        var evaluated = testEval(input);
+        var str = Assert.IsType<_String>(evaluated);
+        Assert.Equal("Hello World!", str.Value);
     }
 }

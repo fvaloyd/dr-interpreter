@@ -137,11 +137,12 @@ public record Lexer
     {
         int position = ReadPosition;
         ReadChar();
-        while (Ch != '"')
+        while (Ch != '"' || Ch == 0)
         {
             ReadChar();
         }
-        return Input[position..Position];
+        ReadChar();
+        return Input[position..(Position - 1)];
     }
 
     public void SkipWithSpace()

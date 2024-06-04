@@ -183,7 +183,16 @@ public static class Evaluator
         if (_operator == "==") return nativeBoolToBooleanObject(left == right);
         if (_operator == "!=") return nativeBoolToBooleanObject(left != right);
         if (left.Type() != right.Type()) return new Error($"type mismatch: {left.Type()} {_operator} {right.Type()}");
+        if (left.Type() == _Object.STRING_OBJ && right.Type() == _Object.STRING_OBJ) return evalStringInfixExpression(_operator, left, right);
         return new Error($"unknown operator: {left.Type()} {_operator} {right.Type()}");
+    }
+    static _Object evalStringInfixExpression(string _operator, _Object left, _Object right)
+    {
+        if (_operator != "+") return new Error($"unknown operator: {left.Type()} {_operator} {right.Type()}");
+
+        var leftVal = ((_String)left).Value;
+        var rightVal = ((_String)right).Value;
+        return new _String(leftVal + rightVal);
     }
 
     static _Object evalIntegerInfixExpression(string _operator, _Object left, _Object right)
