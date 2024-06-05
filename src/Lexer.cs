@@ -54,6 +54,12 @@ public record Lexer
                     tok = new(new(Token.ASSIGN), Ch);
                 }
                 break;
+            case '[':
+                tok = new(new(Token.LBRACKET), Ch);
+                break;
+            case ']':
+                tok = new(new(Token.RBRACKET), Ch);
+                break;
             case '"':
                 string s = ReadString();
                 tok = new(new(Token.STRING), s);

@@ -18,6 +18,7 @@ public record Parser
         RegisterPrefix(new(Token.IF), ParseIfExpression);
         RegisterPrefix(new(Token.FUNCTION), ParseFunctionLiteral);
         RegisterPrefix(new(Token.STRING), ParseStringLiteral);
+        RegisterPrefix(new(Token.LBRACKET), ParseArrayLiteral);
 
         RegisterInfix(new(Token.PLUS), ParseInfixExpression);
         RegisterInfix(new(Token.MINUS), ParseInfixExpression);
@@ -57,6 +58,38 @@ public record Parser
             NextToken();
         }
         return p;
+    }
+
+    public Expression ParseArrayLiteral()
+    {
+        var array = new ArrayLiteral { Token = CurrToken };
+        array.Elements = ParseExpressionList(Token.RBRACKET);
+        return array;
+    }
+
+    public List<Expression> ParseExpressionList(string end)
+    {
+        List<Expression> result = [];
+
+        if (PeekTokenIs(end))
+        {
+            NextToken();
+            return result;
+        }
+
+        NextToken();
+        result.Add(ParseExpression(Precedence.LOWEST));
+
+        while (PeekTokenIs(Token.COMMA))
+        {
+            NextToken();
+            NextToken();
+            result.Add(ParseExpression(Precedence.LOWEST));
+        }
+
+        if (!ExpectPeek(end)) return null!;
+
+        return result;
     }
 
     private Expression ParseStringLiteral()
@@ -283,7 +316,7 @@ public record Parser
     public Expression ParseCallExpression(Expression function)
     {
         var exp = new CallExpression { Token = CurrToken, Function = function };
-        exp.Arguments = ParseCallArguments();
+        exp.Arguments = ParseExpressionList(Token.RPAREN);
         return exp;
     }
 

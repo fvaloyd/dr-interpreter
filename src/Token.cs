@@ -43,6 +43,8 @@ public record Token
     public const string LPAREN = "(";
     public const string RBRACE = "}";
     public const string LBRACE = "{";
+    public const string LBRACKET = "[";
+    public const string RBRACKET = "]";
 
     // Keywords
     public const string LET = "LET";

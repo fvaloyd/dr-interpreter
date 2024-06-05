@@ -271,3 +271,21 @@ public record StringLiteral(Token Token, string Value) : Expression
     public string TokenLiteral()
         => Token.Literal;
 }
+
+public record ArrayLiteral : Expression
+{
+    public Token Token { get; set; } = null!;
+    public List<Expression> Elements { get; set; } = new();
+
+    public string String()
+    {
+        var sb = new StringBuilder();
+        sb.Append("[");
+        sb.Append(string.Join(", ", Elements.Select(e => e.String())));
+        sb.Append("]");
+        return sb.ToString();
+    }
+
+    public string TokenLiteral()
+        => Token.Literal;
+}
