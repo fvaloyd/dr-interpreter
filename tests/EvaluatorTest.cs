@@ -242,4 +242,16 @@ public class EvaluatorTest
                 break;
         }
     }
+
+    [Fact]
+    public void TestArrayLiterals()
+    {
+        var input = "[1, 2 * 2, 3 + 3]";
+        var evaluated = testEval(input);
+        var result = Assert.IsType<_Array>(evaluated);
+        Assert.Equal(3, result.Elements.Length);
+        testIntegerObject(result.Elements[0], 1);
+        testIntegerObject(result.Elements[1], 4);
+        testIntegerObject(result.Elements[2], 6);
+    }
 }

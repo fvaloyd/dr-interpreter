@@ -13,6 +13,7 @@ public abstract record _Object
     public const string FUNCTION_OBJ = "FUNCTION";
     public const string STRING_OBJ = "STRING";
     public const string BUILTIN = "BUILTIN";
+    public const string ARRAY = "ARRAY";
 
     public abstract ObjectType Type();
     public abstract string Inspect();
@@ -146,4 +147,21 @@ public record Builtin(BuiltinFunction Fn) : _Object
 
     public override string Type()
         => _Object.BUILTIN;
+}
+
+public record _Array : _Object
+{
+    public _Object[] Elements { get; set; } = [];
+
+    public override string Inspect()
+    {
+        var sb = new StringBuilder();
+        sb.Append("[");
+        sb.Append(Elements.Select(e => e.Inspect()));
+        sb.Append("]");
+        return sb.ToString();
+    }
+
+    public override string Type()
+        => _Object.ARRAY;
 }

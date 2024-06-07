@@ -34,6 +34,12 @@ public static class Evaluator
                     if (isError(right)) return right;
                     return evalPrefixExpression(pe.Operator, right!);
                 }
+            case ArrayLiteral al:
+                {
+                    var elements = evalExpressions(al.Elements, env);
+                    if (elements.Count == 1 && isError(elements[0])) return elements[0];
+                    return new _Array { Elements = elements.ToArray() };
+                }
             case InfixExpression ie:
                 {
                     var left = Eval(ie.Left, env);
