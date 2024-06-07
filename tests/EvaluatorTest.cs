@@ -36,7 +36,7 @@ public class EvaluatorTest
         testIntegerObject(evaluated, expected);
     }
 
-    private void testIntegerObject(_Object obj, Int64 expected)
+    private void testIntegerObject(_Object obj, Int64? expected)
     {
         var integer = Assert.IsType<Integer>(obj);
         Assert.Equal(expected, integer.Value);
@@ -253,5 +253,34 @@ public class EvaluatorTest
         testIntegerObject(result.Elements[0], 1);
         testIntegerObject(result.Elements[1], 4);
         testIntegerObject(result.Elements[2], 6);
+    }
+
+    [Theory]
+    [InlineData("[1, 2, 3][0]", 1)]
+    [InlineData("[1, 2, 3][1]", 2)]
+    [InlineData("[1, 2, 3][2]", 3)]
+    [InlineData("let i = 0; [1][i]", 1)]
+    [InlineData("[1, 2, 3][1 + 1]", 3)]
+    [InlineData("let myArray = [1, 2, 3]; myArray[2]", 3)]
+    [InlineData("let myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];", 6)]
+    [InlineData("let myArray = [1, 2, 3]; let i = myArray[0]; myArray[i]", 2)]
+    [InlineData("[1, 2, 3][3]", null)]
+    [InlineData("[1, 2, 3][-1]", null)]
+    public void TestArrayIndexExpressions(string input, int? expected)
+    {
+        var evaluated = testEval(input);
+        if (expected is null)
+        {
+            testNullObject(evaluated);
+        }
+        else
+        {
+            testIntegerObject(evaluated!, expected);
+        }
+    }
+
+    private void testNullObject(_Object? obj)
+    {
+        Assert.IsType<_Null>(obj);
     }
 }
