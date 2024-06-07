@@ -157,7 +157,7 @@ public record _Array : _Object
     {
         var sb = new StringBuilder();
         sb.Append("[");
-        sb.Append(Elements.Select(e => e.Inspect()));
+        sb.Append(string.Join(", ", Elements.Select(e => e.Inspect())));
         sb.Append("]");
         return sb.ToString();
     }
