@@ -29,6 +29,7 @@ public record Parser
         RegisterInfix(new(Token.LT), ParseInfixExpression);
         RegisterInfix(new(Token.GT), ParseInfixExpression);
         RegisterInfix(new(Token.LPAREN), ParseCallExpression);
+        RegisterInfix(new(Token.LBRACKET), ParseIndexExpression);
     }
 
     public Token CurrToken { get; set; } = null!;
@@ -58,6 +59,18 @@ public record Parser
             NextToken();
         }
         return p;
+    }
+
+    public Expression ParseIndexExpression(Expression left)
+    {
+        var exp = new IndexExpression { Token = CurrToken, Left = left };
+
+        NextToken();
+        exp.Index = ParseExpression(Precedence.LOWEST);
+
+        if (!ExpectPeek(Token.RBRACKET)) return null!;
+
+        return exp;
     }
 
     public Expression ParseArrayLiteral()
@@ -354,7 +367,8 @@ public record Parser
         {new(Token.MINUS), Precedence.SUM},
         {new(Token.SLASH), Precedence.PRODUCT},
         {new(Token.ASTERISK), Precedence.PRODUCT},
-        {new(Token.LPAREN), Precedence.CALL}
+        {new(Token.LPAREN), Precedence.CALL},
+        {new(Token.LBRACKET), Precedence.INDEX}
     };
 
     public Precedence PeekPrecedence()
@@ -422,5 +436,6 @@ public enum Precedence
     SUM,
     PRODUCT,
     PREFIX,
-    CALL
+    CALL,
+    INDEX
 }

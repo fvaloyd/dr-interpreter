@@ -289,3 +289,24 @@ public record ArrayLiteral : Expression
     public string TokenLiteral()
         => Token.Literal;
 }
+
+public record IndexExpression : Expression
+{
+    public Token Token { get; set; } = null!;
+    public Expression Left { get; set; } = null!;
+    public Expression Index { get; set; } = null!;
+
+    public string String()
+    {
+        StringBuilder sb = new();
+        sb.Append("(");
+        sb.Append(Left.String());
+        sb.Append("[");
+        sb.Append(Index.String());
+        sb.Append("])");
+        return sb.ToString();
+    }
+
+    public string TokenLiteral()
+        => Token.Literal;
+}
